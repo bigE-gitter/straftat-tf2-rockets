@@ -321,6 +321,176 @@
       "source": "CGameMovement::StayOnGround snaps a moving grounded player down up to sv_stepsize 18 units",
       "verified_offline": "Source/TF2 default",
       "verified_in_game": false
+    },
+    {
+      "id": "HealthPerTf2Hp",
+      "tf2_value": 0.05,
+      "tf2_unit": "health per TF2 hp",
+      "straftat_value": 0.05,
+      "straftat_unit": "STRAFTAT health",
+      "source": "TF2 player 200 hp = STRAFTAT PlayerHealth.health 10 (same scale as BaseDamage)",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "CritMultiplier",
+      "tf2_value": 3,
+      "tf2_unit": "x",
+      "straftat_value": 3,
+      "straftat_unit": "x",
+      "source": "TF2 critical hits deal 3x",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "DeployTime",
+      "tf2_value": 0.5,
+      "tf2_unit": "s",
+      "straftat_value": 0.5,
+      "straftat_unit": "s",
+      "source": "TF2 weapon switch (deploy) time 0.5 s",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "ShovelDamage",
+      "tf2_value": 65,
+      "tf2_unit": "hp",
+      "straftat_value": 65,
+      "straftat_unit": "TF2 hp",
+      "source": "TF2 shovel / Market Gardener base damage 65 (no ramp-up or fall-off on melee)",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "MarketGardenerInterval",
+      "tf2_value": 0.96,
+      "tf2_unit": "s",
+      "straftat_value": 0.96,
+      "straftat_unit": "s",
+      "source": "TF2 melee 0.8 s, Market Gardener -20% firing speed -> 0.96 s",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "MeleeRange",
+      "tf2_value": 48,
+      "tf2_unit": "u",
+      "straftat_value": 1.083,
+      "straftat_unit": "m",
+      "source": "TF2 melee swing trace length 48 units",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "MeleeHullHalf",
+      "tf2_value": 18,
+      "tf2_unit": "u",
+      "straftat_value": 0.406,
+      "straftat_unit": "m",
+      "source": "TF2 melee swing hull 36x36x36 when the line trace misses",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "MeleeHitDelay",
+      "tf2_value": 0.2,
+      "tf2_unit": "s",
+      "straftat_value": 0.2,
+      "straftat_unit": "s",
+      "source": "TF2 melee 'smack' delay after the swing starts",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperMinDamage",
+      "tf2_value": 50,
+      "tf2_unit": "hp",
+      "straftat_value": 50,
+      "straftat_unit": "TF2 hp",
+      "source": "TF2 Sniper Rifle uncharged / unscoped body shot 50",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperMaxDamage",
+      "tf2_value": 150,
+      "tf2_unit": "hp",
+      "straftat_value": 150,
+      "straftat_unit": "TF2 hp",
+      "source": "TF2 Sniper Rifle fully charged 150",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperChargeRate",
+      "tf2_value": 50,
+      "tf2_unit": "hp/s",
+      "straftat_value": 50,
+      "straftat_unit": "TF2 hp/s",
+      "source": "TF2 TF_WEAPON_SNIPERRIFLE_CHARGE_PER_SEC 50 (full charge 3 s after the zoom delay)",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperZoomDelay",
+      "tf2_value": 0.3,
+      "tf2_unit": "s",
+      "straftat_value": 0.3,
+      "straftat_unit": "s",
+      "source": "TF2 charge starts after the 0.3 s zoom",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperHeadshotDelay",
+      "tf2_value": 0.2,
+      "tf2_unit": "s",
+      "straftat_value": 0.2,
+      "straftat_unit": "s",
+      "source": "TF2 headshots crit once zoomed for 0.2 s",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperFireInterval",
+      "tf2_value": 1.5,
+      "tf2_unit": "s",
+      "straftat_value": 1.5,
+      "straftat_unit": "s",
+      "source": "TF2 Sniper Rifle attack interval 1.5 s",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperZoomFov",
+      "tf2_value": 20,
+      "tf2_unit": "deg",
+      "straftat_value": 20,
+      "straftat_unit": "deg",
+      "source": "TF2 sniper zoom FOV 20",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperScopedSpeed",
+      "tf2_value": 0.27,
+      "tf2_unit": "x",
+      "straftat_value": 0.27,
+      "straftat_unit": "x",
+      "source": "TF2 zoomed movement 27% of normal speed",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
+    },
+    {
+      "id": "SniperBulletSpeed",
+      "tf2_value": 0,
+      "tf2_unit": "hitscan",
+      "straftat_value": 600,
+      "straftat_unit": "m/s",
+      "source": "TF2 bullets are hitscan; the mod's networked bullet flies 600 m/s (swept every frame) so all players' games see the same shot",
+      "verified_offline": "TF2 defaults / wiki values",
+      "verified_in_game": false
     }
   ]
 }

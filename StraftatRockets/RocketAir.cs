@@ -50,6 +50,11 @@ namespace StraftatRockets
         internal static float VerticalSpeed => _vel.y;
         internal static Vector3 Velocity => _vel;
 
+        // TF2's TF_COND_BLASTJUMPING: launched by your own blast, until you land (the Market Gardener crits during it)
+        private static bool _blastJumping;
+        internal static bool BlastJumping => _active && _blastJumping;
+        internal static void MarkBlastJump() => _blastJumping = true;
+
         // jump presses during the flight, so one pressed just before landing still hops (STRAFTAT's own prejump buffer
         // only fills while its moveDirection.y < 0, which the flight keeps at 0)
         private static float _jumpPressedAt = -1f;
@@ -174,6 +179,7 @@ namespace StraftatRockets
                 else
                 {
                     _groundTime += dt;
+                    _blastJumping = false;
                     _vel.y = -2f;
                     var flat = new Vector3(_vel.x, 0f, _vel.z);
                     // rules.landing: the slide follows the crouch key itself. STRAFTAT also sets isCrouching on its own
@@ -328,6 +334,7 @@ namespace StraftatRockets
         {
             Plugin.Log.LogInfo($"back to STRAFTAT movement after {_groundTime:0.00} s on the ground at {new Vector3(_vel.x, 0f, _vel.z).magnitude:0.0} m/s");
             _active = false;
+            _blastJumping = false;
             _keepTimer = 0f;
             _jumpPressedAt = -1f;
             var input = p.move.ReadValue<Vector2>();

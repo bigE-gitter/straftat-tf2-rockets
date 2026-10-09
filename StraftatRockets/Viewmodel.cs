@@ -45,6 +45,15 @@ namespace StraftatRockets
             Opacity = cfg.Bind("Look", "Opacity", 1f, new ConfigDescription("Launcher opacity (1 = solid)", new AcceptableValueRange<float>(0.1f, 1f)));
         }
 
+        /// Deploy (the weapon swings up into view) and the Market Gardener's idle lean and swing, about the grip.
+        private static Quaternion SlotPose()
+        {
+            float deploy = Mathf.Clamp01((Arsenal.DeployedAt - Time.time) / Tf2.DeployTime);
+            float pitch = 55f * deploy * deploy;
+            if (Arsenal.Slot == 3) pitch += 35f + 80f * Arsenal.SwingPhase(); // shovel held up and forward, swung down
+            return Quaternion.Euler(pitch, 0f, 0f);
+        }
+
         internal static void ResetAll()
         {
             Forward.Value = Right.Value = Up.Value = Pitch.Value = Yaw.Value = Roll.Value = 0f;
@@ -119,13 +128,15 @@ namespace StraftatRockets
             if (m.Pivot != null)
                 m.Pivot.localPosition = mine ? m.PivotBase + new Vector3(Right.Value, Up.Value, Forward.Value) : m.PivotBase;
             // turned about the grip (the model's origin) in the weapon's own axes: x right, y up, z forward
-            m.transform.localRotation = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * m.ModelBaseRotation : m.ModelBaseRotation;
+            m.transform.localRotation = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * SlotPose() * m.ModelBaseRotation : m.ModelBaseRotation;
             m.transform.localScale = Vector3.one * (mine ? Scale.Value : 1f);
-            if (m.Renderer != null) m.Renderer.enabled = !(mine && Hide.Value);
-            // rules.cosmetics: your pick of launcher, colour and opacity on your own launcher; everyone else's is The Original
-            if (mine) Visuals.SetLook(m, Model.Value, Tint, Opacity.Value);
+            bool hidden = mine && (Hide.Value || Arsenal.Scoped); // TF2 hides the rifle while zoomed
+            if (m.Renderer != null) m.Renderer.enabled = !hidden;
+            // rules.cosmetics + rules.loadout: your launcher shows the active slot's weapon in your colour and opacity;
+            // everyone else's is The Original
+            if (mine) Visuals.SetLook(m, Arsenal.ModelForSlot(), Tint, Opacity.Value);
             else Visuals.SetLook(m, Visuals.DefaultLauncher, Color.white, 1f);
-            Unusuals.Apply(m, mine ? Unusual.Value : "none", UnusualStrength.Value, !(mine && Hide.Value));
+            Unusuals.Apply(m, mine ? Unusual.Value : "none", UnusualStrength.Value, !hidden);
         }
     }
 
@@ -151,6 +162,8 @@ namespace StraftatRockets
             if (Input.GetKeyDown(Viewmodel.PanelKey.Value)) SetOpen(!Open);
         }
 
+        private void LateUpdate() => Arsenal.LateTick();
+
         private void SetOpen(bool open)
         {
             if (open == Open) return;
@@ -171,6 +184,7 @@ namespace StraftatRockets
 
         private void OnGUI()
         {
+            Arsenal.DrawHud();
             if (!Open) return;
             if (Cursor.lockState != CursorLockMode.None) { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
             _rect = GUILayout.Window(0x5754F2, _rect, Draw, "The Original - viewmodel (" + Viewmodel.PanelKey.Value + " to close)");
@@ -218,6 +232,13 @@ namespace StraftatRockets
 
         private void Draw(int id)
         {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Game mode", GUILayout.Width(70));
+            bool host = Arsenal.IsLobbyHost();
+            if (host && GUILayout.Button("<", GUILayout.Width(28))) Arsenal.SetMode(Arsenal.Mode == GameMode.Rockets ? GameMode.JumpSnipe : GameMode.Rockets);
+            GUILayout.Label(Arsenal.ModeName(Arsenal.Mode) + (host ? "" : "  (host's pick)"), GUILayout.Width(200));
+            if (host && GUILayout.Button(">", GUILayout.Width(28))) Arsenal.SetMode(Arsenal.Mode == GameMode.Rockets ? GameMode.JumpSnipe : GameMode.Rockets);
+            GUILayout.EndHorizontal();
             GUILayout.Label("Look");
             Picker("Launcher", Viewmodel.Model, Visuals.Launchers);
             Picker("Rocket", Viewmodel.Projectile, Visuals.Projectiles);

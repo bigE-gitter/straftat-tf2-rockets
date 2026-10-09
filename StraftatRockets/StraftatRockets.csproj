@@ -10,7 +10,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
     <Deterministic>true</Deterministic>
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
     <StraftatDir Condition="'$(StraftatDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\STRAFTAT</StraftatDir>
     <Managed>$(StraftatDir)\STRAFTAT_Data\Managed</Managed>
     <BepCore>$(StraftatDir)\BepInEx\core</BepCore>
@@ -23,6 +23,7 @@
     <Reference Include="BepInEx"><HintPath>$(BepCore)\BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(BepCore)\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Assembly-CSharp"><HintPath>$(Managed)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="com.rlabrecque.steamworks.net"><HintPath>$(Managed)\com.rlabrecque.steamworks.net.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="FishNet.Runtime"><HintPath>$(Managed)\FishNet.Runtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.InputSystem"><HintPath>$(Managed)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(Managed)\UnityEngine.dll</HintPath><Private>false</Private></Reference>

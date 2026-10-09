@@ -15,7 +15,7 @@ namespace StraftatRockets
     {
         public const string Guid = "melty.straftat.tf2rockets";
         public const string Name = "STRAFTAT x TF2 Rockets";
-        public const string Version = "0.2.1";
+        public const string Version = "0.3.0";
         public const string LauncherName = "RocketLauncher";
 
         internal static ManualLogSource Log;
@@ -27,6 +27,7 @@ namespace StraftatRockets
             Instance = this;
             Log = Logger;
             Viewmodel.Bind(Config);
+            Arsenal.Bind(Config);
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             Tf2Folder = Config.Bind("Paths", "TF2Folder", "", "Team Fortress 2's 'tf' folder. Leave empty to find TF2 through Steam.");
             try { Visuals.Load(System.IO.Path.GetDirectoryName(Info.Location), Tf2Folder.Value); }
@@ -171,6 +172,7 @@ namespace StraftatRockets
             me.SetRightIKTarget(item.gripRight);
             var rig = RigBuilderField.GetValue(me);
             rig?.GetType().GetMethod("Build", new System.Type[0])?.Invoke(rig, null);
+            Arsenal.OnPickedUp();
             Plugin.Log.LogInfo("picked up the rocket launcher");
         }
     }
@@ -201,21 +203,19 @@ namespace StraftatRockets
         private static readonly AccessTools.FieldRef<DualLauncher, float> Knockback =
             AccessTools.FieldRefAccess<DualLauncher, float>("playerKnockback");
 
-        private static void Prefix(DualLauncher __instance)
+        private static bool Prefix(DualLauncher __instance)
         {
-            if (!Plugin.IsLauncher(__instance.gameObject)) return;
+            if (!Plugin.IsLauncher(__instance.gameObject)) return true;
             __instance.needsAmmo = false;
-            // rules.cosmetics: TF2 picks one of a weapon's shot sounds at random each shot (the Air Strike has three)
+            Knockback(__instance) = 0f;
+            if (ViewmodelPanel.Open) return false;
+            // rules.loadout: your own launcher does what the active slot is (rocket, sniper shot, Market Gardener
+            // swing), with that weapon's TF2 sound (a random pick when TF2 has several)
             var item = __instance.GetComponent<ItemBehaviour>();
             var me = LocalPlayer.Controller;
-            if (item != null && me != null && item.rootObject == me.gameObject)
-            {
-                var set = Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value);
-                var clip = Visuals.Pick(set?.Fire, Visuals.FireClip);
-                if (clip != null) __instance.fireClip = clip;
-            }
+            if (item != null && me != null && item.rootObject == me.gameObject) return Arsenal.BeforeFire(__instance);
             __instance.timeBetweenFire = Tf2.FireInterval;
-            Knockback(__instance) = 0f;
+            return true;
         }
     }
 }

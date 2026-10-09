@@ -65,6 +65,40 @@ namespace StraftatRockets
         public const float TickInterval = 0.015f; // s
         /// <summary>CGameMovement::StayOnGround snaps a moving grounded player down up to sv_stepsize 18 units (TF2 18 u)</summary>
         public const float StepSize = 0.406f; // m
+        /// <summary>TF2 player 200 hp = STRAFTAT PlayerHealth.health 10 (same scale as BaseDamage) (TF2 0.05 health per TF2 hp)</summary>
+        public const float HealthPerTf2Hp = 0.05f; // STRAFTAT health
+        /// <summary>TF2 critical hits deal 3x (TF2 3 x)</summary>
+        public const float CritMultiplier = 3.0f; // x
+        /// <summary>TF2 weapon switch (deploy) time 0.5 s (TF2 0.5 s)</summary>
+        public const float DeployTime = 0.5f; // s
+        /// <summary>TF2 shovel / Market Gardener base damage 65 (no ramp-up or fall-off on melee) (TF2 65 hp)</summary>
+        public const float ShovelDamage = 65.0f; // TF2 hp
+        /// <summary>TF2 melee 0.8 s, Market Gardener -20% firing speed -> 0.96 s (TF2 0.96 s)</summary>
+        public const float MarketGardenerInterval = 0.96f; // s
+        /// <summary>TF2 melee swing trace length 48 units (TF2 48 u)</summary>
+        public const float MeleeRange = 1.083f; // m
+        /// <summary>TF2 melee swing hull 36x36x36 when the line trace misses (TF2 18 u)</summary>
+        public const float MeleeHullHalf = 0.406f; // m
+        /// <summary>TF2 melee 'smack' delay after the swing starts (TF2 0.2 s)</summary>
+        public const float MeleeHitDelay = 0.2f; // s
+        /// <summary>TF2 Sniper Rifle uncharged / unscoped body shot 50 (TF2 50 hp)</summary>
+        public const float SniperMinDamage = 50.0f; // TF2 hp
+        /// <summary>TF2 Sniper Rifle fully charged 150 (TF2 150 hp)</summary>
+        public const float SniperMaxDamage = 150.0f; // TF2 hp
+        /// <summary>TF2 TF_WEAPON_SNIPERRIFLE_CHARGE_PER_SEC 50 (full charge 3 s after the zoom delay) (TF2 50 hp/s)</summary>
+        public const float SniperChargeRate = 50.0f; // TF2 hp/s
+        /// <summary>TF2 charge starts after the 0.3 s zoom (TF2 0.3 s)</summary>
+        public const float SniperZoomDelay = 0.3f; // s
+        /// <summary>TF2 headshots crit once zoomed for 0.2 s (TF2 0.2 s)</summary>
+        public const float SniperHeadshotDelay = 0.2f; // s
+        /// <summary>TF2 Sniper Rifle attack interval 1.5 s (TF2 1.5 s)</summary>
+        public const float SniperFireInterval = 1.5f; // s
+        /// <summary>TF2 sniper zoom FOV 20 (TF2 20 deg)</summary>
+        public const float SniperZoomFov = 20.0f; // deg
+        /// <summary>TF2 zoomed movement 27% of normal speed (TF2 0.27 x)</summary>
+        public const float SniperScopedSpeed = 0.27f; // x
+        /// <summary>TF2 bullets are hitscan; the mod's networked bullet flies 600 m/s (swept every frame) so all players' games see the same shot (TF2 0 hitscan)</summary>
+        public const float SniperBulletSpeed = 600.0f; // m/s
     }
 
     internal static class Tuning

@@ -26,6 +26,11 @@ namespace StraftatRockets
             new Row { Id = "w_rocket_airstrike", Name = "Air Strike rocket", Kind = "projectile", Mdl = "models/weapons/w_models/w_rocket_airstrike/w_rocket_airstrike.mdl", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
             new Row { Id = "energy_ball", Name = "Cow Mangler energy ball", Kind = "projectile", Mdl = "", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
             new Row { Id = "straftat_rocket", Name = "STRAFTAT rocket", Kind = "projectile", Mdl = "", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
+            new Row { Id = "sniper_rifle", Name = "Sniper Rifle", Kind = "weapon", Mdl = "models/weapons/c_models/c_sniperrifle/c_sniperrifle.mdl", Extra = new string[0], FireWaves = new string[] { "sound/weapons/sniper_shoot.wav" }, ExplodeWaves = new string[0] },
+            new Row { Id = "market_gardener", Name = "The Market Gardener", Kind = "weapon", Mdl = "models/workshop/weapons/c_models/c_market_gardener/c_market_gardener.mdl", Extra = new string[0], FireWaves = new string[] { "sound/weapons/shovel_swing.wav" }, ExplodeWaves = new string[] { "sound/weapons/axe_hit_flesh1.wav", "sound/weapons/axe_hit_flesh2.wav", "sound/weapons/axe_hit_flesh3.wav" } },
+            new Row { Id = "sniper_crit", Name = "Sniper Rifle crit shot", Kind = "sound", Mdl = "", Extra = new string[0], FireWaves = new string[] { "sound/weapons/sniper_shoot_crit.wav" }, ExplodeWaves = new string[0] },
+            new Row { Id = "shovel_crit", Name = "Shovel crit swing", Kind = "sound", Mdl = "", Extra = new string[0], FireWaves = new string[] { "sound/weapons/shovel_swing_crit.wav" }, ExplodeWaves = new string[] { "sound/player/crit_hit.wav", "sound/player/crit_hit2.wav", "sound/player/crit_hit3.wav", "sound/player/crit_hit4.wav", "sound/player/crit_hit5.wav" } },
+            new Row { Id = "shovel_world", Name = "Shovel hits the world", Kind = "sound", Mdl = "", Extra = new string[0], FireWaves = new string[] { "sound/weapons/cbar_hit1.wav", "sound/weapons/cbar_hit2.wav" }, ExplodeWaves = new string[0] },
         };
     }
 }

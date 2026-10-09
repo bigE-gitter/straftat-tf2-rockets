@@ -14,12 +14,18 @@ namespace StraftatRockets
         public bool Exploded;
         public bool Hit;
         public Vector3 HitNormal;
+        public Collider HitCollider;
+        public int Slot = 1;            // 1 rocket, 2 sniper bullet (rules.loadout, hooks.shot_slot)
+        public bool Jumper;             // Rocket Jumper rocket: pushes, never damages others
+        public float SniperDamage;      // TF2 damage of the shot (shooter's client only)
+        public bool SniperCanCrit;
     }
 
     [HarmonyPatch]
     internal static class Rockets
     {
         private static readonly Dictionary<PredictedProjectile, RocketInfo> Live = new Dictionary<PredictedProjectile, RocketInfo>();
+        internal static int IncomingSlot; // set by Arsenal.DecodeSlot just before STRAFTAT initializes the projectile
 
         private static readonly AccessTools.FieldRef<PredictedProjectile, float> MoveRate = AccessTools.FieldRefAccess<PredictedProjectile, float>("MOVE_RATE");
         private static readonly AccessTools.FieldRef<PredictedProjectile, bool> UsePhysics = AccessTools.FieldRefAccess<PredictedProjectile, bool>("usePhysics");
@@ -46,14 +52,44 @@ namespace StraftatRockets
         private static void AfterInitialize(PredictedProjectile __instance, GameObject rootObject, GameObject gun)
         {
             if (!Plugin.IsLauncher(gun)) return;
+            int slot = IncomingSlot == 2 ? 2 : 1;
+            IncomingSlot = 0;
             UsePhysics(__instance) = false;
             UseGravity(__instance) = false;
-            MoveRate(__instance) = Tf2.RocketSpeed;
-            ExplosionRadius(__instance) = Tf2.BlastRadius;
+            MoveRate(__instance) = slot == 2 ? Tf2.SniperBulletSpeed : Tf2.RocketSpeed;
+            ExplosionRadius(__instance) = slot == 2 ? 0.01f : Tf2.BlastRadius;
             Damage(__instance) = 0f; // the plugin deals TF2 damage itself
             var src = __instance.GetComponent<AudioSource>();
             var me0 = LocalPlayer.Controller;
-            var mySet = me0 != null && rootObject == me0.gameObject ? Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value) : null;
+            bool mine0 = me0 != null && rootObject == me0.gameObject;
+            bool jumpSnipe = Arsenal.Mode == GameMode.JumpSnipe;
+            // other players' shots: STRAFTAT played their launcher's (silent) shot sound; play the right one here
+            if (!mine0)
+            {
+                var their = slot == 2 ? Visuals.SoundFor("sniper_rifle", null) : jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : null;
+                var shot = Visuals.Pick(their?.Fire, Visuals.FireClip);
+                var gunAudio = gun.GetComponent<Weapon>()?.audio;
+                if (shot != null && gunAudio != null) gunAudio.PlayOneShot(shot);
+            }
+            if (slot == 2)
+            {
+                // rules.sniper_rifle: a near-hitscan bullet with a tracer, no explosion, no push
+                if (src != null) src.clip = null;
+                ObjToSpawn(__instance) = Visuals.EmptyEffect();
+                HitVfx(__instance) = Visuals.EmptyEffect();
+                ExplosionDecal(__instance) = Visuals.EmptyEffect();
+                var g = Graph(__instance);
+                Visuals.DressTracer(__instance, g != null ? g.transform : null);
+                Live[__instance] = new RocketInfo
+                {
+                    FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position,
+                    Shooter = rootObject, Slot = 2,
+                    SniperDamage = mine0 ? Arsenal.ShotDamage : 0f, SniperCanCrit = mine0 && Arsenal.ShotCanCrit,
+                };
+                return;
+            }
+            var mySet = mine0 ? (jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value))
+                              : (jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : null);
             var blast = Visuals.Pick(mySet?.Explode, Visuals.ExplodeClip);
             if (src != null && blast != null)
             {
@@ -64,7 +100,7 @@ namespace StraftatRockets
                 HitVfx(__instance) = Silent(HitVfx(__instance));
                 ExplosionDecal(__instance) = Silent(ExplosionDecal(__instance));
             }
-            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject };
+            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject, Jumper = jumpSnipe };
             // rules.cosmetics: your own rockets fly as the model you picked, everyone else's as TF2's rocket
             var me = LocalPlayer.Controller;
             bool mine = me != null && rootObject == me.gameObject;
@@ -127,6 +163,7 @@ namespace StraftatRockets
             if (bestDist == float.MaxValue) return;
             info.Hit = true;
             info.HitNormal = best.normal;
+            info.HitCollider = best.collider;
             __instance.transform.position = best.point + best.normal * Tf2.SurfaceOffset;
             MoveRate(__instance) = 0f;
             SkipSafeStart(__instance) = true;
@@ -201,10 +238,57 @@ namespace StraftatRockets
             return Tf2.BaseDamage * splash * ramp; // in STRAFTAT health units (TF2 damage x 10/200)
         }
 
+        /// Damage (in STRAFTAT health) dealt from the attacker's client, the way STRAFTAT's own weapons do it; infinity
+        /// kills outright (the Market Gardener crit).
+        internal static void ApplyDamage(PlayerHealth ph, float dmg, GameObject shooter, Vector3 at, Vector3 dir, string weapon, string verb, PredictedProjectile rocket)
+        {
+            if (ph == null || ph.sync___get_value_isKilled()) return;
+            float health = ph.sync___get_value_health();
+            if (float.IsInfinity(dmg)) dmg = health + 1f;
+            if (shooter != null) ph.SetKiller(shooter.transform);
+            if (health - dmg <= 0f)
+            {
+                ph.ChangeKilledState(true);
+                ph.Explode(false, true, ph.gameObject.name, dir, 4f, at, true);
+                if (rocket != null && rocket.Equals(null) == false && weapon == null)
+                {
+                    rocket.KillShockWave();
+                    SendKillLog?.Invoke(rocket, new object[] { ph });
+                }
+                else KillLog(ph, weapon, verb);
+            }
+            ph.RemoveHealth(dmg);
+            if (rocket != null) HitMarker?.Invoke(rocket, new object[] { false });
+        }
+
+        private static void KillLog(PlayerHealth victim, string weapon, string verb)
+        {
+            try
+            {
+                var pm = PauseManager.Instance;
+                string name = victim.sync___get_value_playerValues().sync___get_value_playerClient().PlayerNameTag;
+                pm.WriteLog("<b><color=#" + pm.selfNameLogColor + ">" + name + "</color></b> was " + verb + " with a <b><color=white>" + weapon +
+                            "</color></b> by <b><color=#" + pm.enemyNameLogColor + ">" + ClientInstance.Instance.PlayerNameTag + "</color></b>");
+            }
+            catch (System.Exception) { }
+        }
+
         private static void Explode(PredictedProjectile rocket, RocketInfo info, Vector3 blast)
         {
-            // damage: only on the shooter's client, never to the shooter
-            if (rocket.isOwner)
+            if (info.Slot == 2)
+            {
+                // rules.sniper_rifle: direct hit only, scoped headshots crit (x3), no splash and no push
+                if (!rocket.isOwner || info.HitCollider == null) return;
+                var victim = info.HitCollider.GetComponentInParent<PlayerHealth>();
+                if (victim == null || victim.gameObject == info.Shooter) return;
+                bool head = info.HitCollider.name == "Head_Col" || info.HitCollider.name == "Neck_1_Col";
+                float tf2 = info.SniperDamage * (head && info.SniperCanCrit ? Tf2.CritMultiplier : 1f);
+                Plugin.Log.LogInfo($"sniper hit {victim.gameObject.name}: {(head ? "head" : "body")}, {tf2:0} TF2 damage");
+                ApplyDamage(victim, tf2 * Tf2.HealthPerTf2Hp, info.Shooter, blast, rocket.transform.forward, "Sniper Rifle", head && info.SniperCanCrit ? "headshot" : "killed", null);
+                return;
+            }
+            // damage: only on the shooter's client, never to the shooter; the Rocket Jumper's rockets never damage
+            if (rocket.isOwner && !info.Jumper)
             {
                 foreach (var go in GameObject.FindGameObjectsWithTag("Player"))
                 {
@@ -212,22 +296,14 @@ namespace StraftatRockets
                     if (ph == null || ph.sync___get_value_isKilled() || go == info.Shooter) continue;
                     float dmg = Tf2DamageAt(blast, go.transform, info.FiredFrom, false, out _);
                     if (dmg <= 0f) continue;
-                    if (info.Shooter != null) ph.SetKiller(info.Shooter.transform);
-                    if (ph.sync___get_value_health() - dmg <= 0f)
-                    {
-                        ph.ChangeKilledState(true);
-                        ph.Explode(false, true, go.name, go.transform.position - blast, 4f, blast, true);
-                        rocket.KillShockWave();
-                        SendKillLog?.Invoke(rocket, new object[] { ph });
-                    }
-                    ph.RemoveHealth(dmg);
-                    HitMarker?.Invoke(rocket, new object[] { false });
+                    ApplyDamage(ph, dmg, info.Shooter, blast, go.transform.position - blast, null, null, rocket);
                 }
             }
             // push: each client pushes its own player
             var me = LocalPlayer.Controller;
             if (me == null) return;
             bool self = info.Shooter != null && me.gameObject == info.Shooter;
+            if (info.Jumper && !self) return; // TF2: no damage, so no knockback on others
             float tfDamage = Tf2DamageAt(blast, me.transform, info.FiredFrom, self, out var center) / Tf2.BaseDamage * 90f;
             if (tfDamage <= 0f) return;
             var cc = me.characterController;
@@ -245,6 +321,7 @@ namespace StraftatRockets
             var dir = center - (blast - Vector3.up * Tf2.BlastDirectionDrop);
             if (dir.sqrMagnitude < 1e-6f) dir = Vector3.up;
             RocketAir.Push(me, dir.normalized * force);
+            if (self) RocketAir.MarkBlastJump();
             if (self) Plugin.Log.LogInfo($"  push {dir.normalized * force:F1} m/s -> velocity {RocketAir.Velocity:F1}");
         }
     }

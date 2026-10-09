@@ -116,8 +116,47 @@ namespace StraftatRockets
         internal static void Add(TF2Model m)
         {
             if (ById.ContainsKey(m.Id)) return;
-            (m.Kind == "launcher" ? Launchers : Projectiles).Add(m);
-            ById[m.Id] = m;
+            if (m.Kind == "launcher") Launchers.Add(m);
+            else if (m.Kind == "projectile") Projectiles.Add(m);
+            ById[m.Id] = m; // weapons (sniper, Market Gardener) and sound-only rows are looked up by id
+        }
+
+        private static GameObject _empty;
+        private static AudioClip _silence;
+
+        /// An effect that does nothing (a sniper bullet's "explosion"), kept under an inactive holder.
+        internal static GameObject EmptyEffect()
+        {
+            if (_empty != null) return _empty;
+            var holder = new GameObject("StraftatRockets_EmptyEffects");
+            holder.SetActive(false);
+            Object.DontDestroyOnLoad(holder);
+            _empty = new GameObject("TF2_NoEffect");
+            _empty.transform.SetParent(holder.transform, false);
+            return _empty;
+        }
+
+        /// Other players' launchers shoot silently through STRAFTAT; Rockets plays the right shot sound per slot.
+        internal static AudioClip Silence => _silence != null ? _silence : (_silence = AudioClip.Create("TF2_Silence", 32, 1, 44100, false));
+
+        /// rules.sniper_rifle: a bullet is a bright streak; STRAFTAT's rocket mesh and smoke trail are hidden.
+        internal static void DressTracer(Component rocket, Transform graph)
+        {
+            foreach (var old in rocket.GetComponentsInChildren<ProjectileMarker>(true)) Object.Destroy(old.gameObject);
+            foreach (var r in rocket.GetComponentsInChildren<MeshRenderer>(true)) r.forceRenderingOff = true;
+            foreach (var ps in rocket.GetComponentsInChildren<ParticleSystem>(true)) ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var go = new GameObject("TF2_Tracer");
+            go.AddComponent<ProjectileMarker>();
+            go.transform.SetParent(graph != null ? graph : rocket.transform, false);
+            var trail = go.AddComponent<TrailRenderer>();
+            trail.time = 0.06f;
+            trail.minVertexDistance = 0.5f;
+            trail.widthMultiplier = 0.025f;
+            trail.numCapVertices = 2;
+            var sh = Shader.Find("Sprites/Default") ?? Shader.Find("UI/Default");
+            if (sh != null) trail.sharedMaterial = new Material(sh);
+            trail.startColor = new Color(1f, 0.95f, 0.75f, 0.9f);
+            trail.endColor = new Color(1f, 0.95f, 0.75f, 0f);
         }
 
         /// Files written by tools/export_models.py (developer fallback when TF2 itself cannot be read).
@@ -332,13 +371,13 @@ namespace StraftatRockets
             foreach (var w in Object.FindObjectsOfType<Weapon>())
             {
                 if (!Plugin.IsLauncher(w.gameObject)) continue;
-                // your own launcher fires with the sounds you picked; everyone else's with The Original's
+                // your own launcher's shot sound is set per shot (Arsenal.BeforeFire); other players' launchers shoot
+                // silently through STRAFTAT and Rockets plays the right sound once it knows which slot fired
                 var item = w.GetComponent<ItemBehaviour>();
                 var me = LocalPlayer.Controller;
                 bool mine = item != null && me != null && item.rootObject == me.gameObject;
-                var set = mine ? SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value) : null;
-                var clip = Pick(set?.Fire, FireClip);
-                if (clip != null && w.fireClip != clip && (set == null || System.Array.IndexOf(set.Fire, w.fireClip) < 0)) w.fireClip = clip;
+                if (!mine) w.fireClip = Silence;
+                else if (w.fireClip == Silence || w.fireClip == null) w.fireClip = FireClip;
                 if (w.GetComponentInChildren<OriginalMarker>(true) == null) Dress(w);
             }
         }

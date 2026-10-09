@@ -4,7 +4,7 @@
   "columns": {
     "id": "config value and file name",
     "name": "shown in the F8 panel",
-    "kind": "launcher | projectile",
+    "kind": "launcher | projectile | weapon (loadout slot model) | sound (sound set only)",
     "mdl": "path inside TF2's VPKs",
     "item_def": "items_game item id (launchers)",
     "verified_offline": "exported and rendered offline",
@@ -277,6 +277,97 @@
       "note": "keep STRAFTAT's own PF_Rocket_00 mesh",
       "verified_offline": false,
       "verified_in_game": false
+    },
+    {
+      "id": "sniper_rifle",
+      "name": "Sniper Rifle",
+      "kind": "weapon",
+      "mdl": "models/weapons/c_models/c_sniperrifle/c_sniperrifle.mdl",
+      "item_def": 14,
+      "fire_sound": "Weapon_SniperRifle.Single",
+      "explode_sound": "",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/sniper_shoot.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "market_gardener",
+      "name": "The Market Gardener",
+      "kind": "weapon",
+      "mdl": "models/workshop/weapons/c_models/c_market_gardener/c_market_gardener.mdl",
+      "item_def": 416,
+      "fire_sound": "Weapon_Shovel.Miss",
+      "explode_sound": "Weapon_Shovel.HitFlesh",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/shovel_swing.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/axe_hit_flesh1.wav",
+        "sound/weapons/axe_hit_flesh2.wav",
+        "sound/weapons/axe_hit_flesh3.wav"
+      ]
+    },
+    {
+      "id": "sniper_crit",
+      "name": "Sniper Rifle crit shot",
+      "kind": "sound",
+      "mdl": "",
+      "item_def": null,
+      "fire_sound": "Weapon_SniperRifle.SingleCrit",
+      "explode_sound": "",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/sniper_shoot_crit.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "shovel_crit",
+      "name": "Shovel crit swing",
+      "kind": "sound",
+      "mdl": "",
+      "item_def": null,
+      "fire_sound": "Weapon_Shovel.MissCrit",
+      "explode_sound": "TFPlayer.CritHit",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/shovel_swing_crit.wav"
+      ],
+      "explode_waves": [
+        "sound/player/crit_hit.wav",
+        "sound/player/crit_hit2.wav",
+        "sound/player/crit_hit3.wav",
+        "sound/player/crit_hit4.wav",
+        "sound/player/crit_hit5.wav"
+      ]
+    },
+    {
+      "id": "shovel_world",
+      "name": "Shovel hits the world",
+      "kind": "sound",
+      "mdl": "",
+      "item_def": null,
+      "fire_sound": "Weapon_Shovel.HitWorld",
+      "explode_sound": "",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/cbar_hit1.wav",
+        "sound/weapons/cbar_hit2.wav"
+      ],
+      "explode_waves": []
     }
   ]
 }
