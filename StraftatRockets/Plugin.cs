@@ -15,7 +15,7 @@ namespace StraftatRockets
     {
         public const string Guid = "melty.straftat.tf2rockets";
         public const string Name = "STRAFTAT x TF2 Rockets";
-        public const string Version = "0.2.0";
+        public const string Version = "0.2.1";
         public const string LauncherName = "RocketLauncher";
 
         internal static ManualLogSource Log;

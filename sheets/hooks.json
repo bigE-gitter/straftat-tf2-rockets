@@ -172,6 +172,24 @@
       "does": "Launcher rockets: STRAFTAT's PF_Rocket_00 forceRenderingOff and a TF2 rocket model under the rocket's graph object (nose +x -> +z); the local player's rockets use their pick, others TF2's rocket",
       "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.8)",
       "verified_in_game": false
+    },
+    {
+      "id": "remote_hands",
+      "target": "PlayerPickup.Update",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "Twice a second: for every other player whose synced objInHand is a launcher with ItemBehaviour.rootObject not set to them, invoke PlayerPickup's RpcLogic___SetObjectInHandObserver locally (the observers RPC a still-loading client missed)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.2.1)",
+      "verified_in_game": false
+    },
+    {
+      "id": "rocket_shooter_fallback",
+      "target": "PredictedProjectile.Initialize",
+      "kind": "prefix",
+      "runs_on": "every client",
+      "does": "A null rootObject (launcher with no known holder) becomes the player whose synced objInHand is the gun, else the gun itself, so Initialize does not throw and the rocket still bursts",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.2.1)",
+      "verified_in_game": false
     }
   ]
 }
