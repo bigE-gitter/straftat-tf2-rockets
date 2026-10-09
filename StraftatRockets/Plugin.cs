@@ -51,6 +51,11 @@ namespace StraftatRockets
             private static void Postfix(PlayerManager __instance, Vector3 position, Quaternion rotation)
             {
                 if (!__instance.IsServer) return;
+                // the end-of-match victory scene (and the menu) stay unarmed like vanilla STRAFTAT, so players can
+                // ready up for a rematch without blowing each other up
+                var pm = PauseManager.Instance;
+                if ((pm != null && (pm.inVictoryMenu || pm.inMainMenu)) ||
+                    UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "VictoryScene") return;
                 SpawnerManager.PopulateAllWeapons();
                 if (!SpawnerManager.NameToWeaponDict.TryGetValue(Plugin.LauncherName, out var prefab))
                 {
