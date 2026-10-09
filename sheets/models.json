@@ -1,0 +1,282 @@
+{
+  "sheet": "models",
+  "about": "TF2 models the player can pick for their launcher viewmodel and their rockets. export_models.py reads each from the player's own TF2 (nothing is shipped). Launchers come from items_game.txt model_player (item_class tf_weapon_rocketlauncher*/particle_cannon); projectiles are TF2's hard-coded rocket/energy-ball w_models found in the VPKs.",
+  "columns": {
+    "id": "config value and file name",
+    "name": "shown in the F8 panel",
+    "kind": "launcher | projectile",
+    "mdl": "path inside TF2's VPKs",
+    "item_def": "items_game item id (launchers)",
+    "verified_offline": "exported and rendered offline",
+    "verified_in_game": "seen in the running game",
+    "extra": "more models drawn with it (TF2 festive lights are a separate model on top of the stock launcher)",
+    "fire_sound": "TF2 soundscript entry for a shot (items_game visuals sound_single_shot; stock weapons: their weapon script's single_shot)",
+    "explode_sound": "TF2 soundscript entry for the blast (items_game sound_special1 when it is an explosion, else TF2's BaseExplosionEffect.Sound)",
+    "fire_waves": "the files behind fire_sound in TF2's VPKs (resolved from game_sounds_weapons.txt by the sheet tool; TF2 picks one at random)",
+    "explode_waves": "the files behind explode_sound"
+  },
+  "rows": [
+    {
+      "id": "the_original",
+      "name": "The Original",
+      "kind": "launcher",
+      "mdl": "models/workshop_partner/weapons/c_models/c_bet_rocketlauncher/c_bet_rocketlauncher.mdl",
+      "item_def": 513,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_QuakeRPG.Single",
+      "explode_sound": "Weapon_QuakeRPG.Explode",
+      "fire_waves": [
+        "sound/weapons/quake_rpg_fire_remastered.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/quake_explosion_remastered.wav"
+      ]
+    },
+    {
+      "id": "rocket_launcher",
+      "name": "Rocket Launcher",
+      "kind": "launcher",
+      "mdl": "models/weapons/c_models/c_rocketlauncher/c_rocketlauncher.mdl",
+      "item_def": 18,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_RPG.Single",
+      "explode_sound": "BaseExplosionEffect.Sound",
+      "fire_waves": [
+        "sound/weapons/rocket_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/explode2.wav",
+        "sound/weapons/explode3.wav",
+        "sound/weapons/explode1.wav"
+      ]
+    },
+    {
+      "id": "festive_rocket_launcher",
+      "name": "Festive Rocket Launcher",
+      "kind": "launcher",
+      "mdl": "models/weapons/c_models/c_rocketlauncher/c_rocketlauncher.mdl",
+      "item_def": 658,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [
+        "models/weapons/c_models/c_rocketlauncher/c_rocketlauncher_xmas.mdl"
+      ],
+      "fire_sound": "Weapon_RPG.Single",
+      "explode_sound": "BaseExplosionEffect.Sound",
+      "fire_waves": [
+        "sound/weapons/rocket_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/explode2.wav",
+        "sound/weapons/explode3.wav",
+        "sound/weapons/explode1.wav"
+      ]
+    },
+    {
+      "id": "direct_hit",
+      "name": "The Direct Hit",
+      "kind": "launcher",
+      "mdl": "models/weapons/c_models/c_directhit/c_directhit.mdl",
+      "item_def": 127,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_RPG_DirectHit.Single",
+      "explode_sound": "Weapon_RPG_DirectHit.Explode",
+      "fire_waves": [
+        "sound/weapons/rocket_directhit_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/rocket_directhit_explode1.wav",
+        "sound/weapons/rocket_directhit_explode2.wav",
+        "sound/weapons/rocket_directhit_explode3.wav"
+      ]
+    },
+    {
+      "id": "black_box",
+      "name": "The Black Box",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_blackbox/c_blackbox.mdl",
+      "item_def": 228,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_RPG_BlackBox.Single",
+      "explode_sound": "Weapon_RPG_BlackBox.Explode",
+      "fire_waves": [
+        "sound/weapons/rocket_blackbox_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/rocket_blackbox_explode1.wav",
+        "sound/weapons/rocket_blackbox_explode2.wav",
+        "sound/weapons/rocket_blackbox_explode3.wav"
+      ]
+    },
+    {
+      "id": "festive_black_box",
+      "name": "Festive Black Box",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_blackbox/c_blackbox_xmas.mdl",
+      "item_def": 1085,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_RPG_BlackBox.Single",
+      "explode_sound": "Weapon_RPG_BlackBox.Explode",
+      "fire_waves": [
+        "sound/weapons/rocket_blackbox_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/rocket_blackbox_explode1.wav",
+        "sound/weapons/rocket_blackbox_explode2.wav",
+        "sound/weapons/rocket_blackbox_explode3.wav"
+      ]
+    },
+    {
+      "id": "rocket_jumper",
+      "name": "Rocket Jumper",
+      "kind": "launcher",
+      "mdl": "models/weapons/c_models/c_rocketjumper/c_rocketjumper.mdl",
+      "item_def": 237,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_Rocket_Jumper.Single",
+      "explode_sound": "Weapon_Rocket_Jumper.Explode",
+      "fire_waves": [
+        "sound/weapons/rocket_jumper_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/rocket_jumper_explode1.wav"
+      ]
+    },
+    {
+      "id": "liberty_launcher",
+      "name": "The Liberty Launcher",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_liberty_launcher/c_liberty_launcher.mdl",
+      "item_def": 414,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_Liberty_Launcher.Single",
+      "explode_sound": "BaseExplosionEffect.Sound",
+      "fire_waves": [
+        "sound/weapons/rocket_ll_shoot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/explode2.wav",
+        "sound/weapons/explode3.wav",
+        "sound/weapons/explode1.wav"
+      ]
+    },
+    {
+      "id": "cow_mangler",
+      "name": "The Cow Mangler 5000",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_drg_cowmangler/c_drg_cowmangler.mdl",
+      "item_def": 441,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_CowMangler.Single",
+      "explode_sound": "Weapon_CowMangler.Explode",
+      "fire_waves": [
+        "sound/weapons/cow_mangler_main_shot.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/cow_mangler_explosion_normal_01.wav",
+        "sound/weapons/cow_mangler_explosion_normal_02.wav",
+        "sound/weapons/cow_mangler_explosion_normal_03.wav"
+      ]
+    },
+    {
+      "id": "beggars_bazooka",
+      "name": "The Beggar's Bazooka",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_dumpster_device/c_dumpster_device.mdl",
+      "item_def": 730,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_Does_Dumpster.Single",
+      "explode_sound": "BaseExplosionEffect.Sound",
+      "fire_waves": [
+        "sound/weapons/doom_rocket_launcher.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/explode2.wav",
+        "sound/weapons/explode3.wav",
+        "sound/weapons/explode1.wav"
+      ]
+    },
+    {
+      "id": "air_strike",
+      "name": "The Air Strike",
+      "kind": "launcher",
+      "mdl": "models/workshop/weapons/c_models/c_atom_launcher/c_atom_launcher.mdl",
+      "item_def": 1104,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": [],
+      "fire_sound": "Weapon_Airstrike.AltFire",
+      "explode_sound": "Weapon_Airstrike.Explosion",
+      "fire_waves": [
+        "sound/weapons/airstrike_fire_01.wav",
+        "sound/weapons/airstrike_fire_02.wav",
+        "sound/weapons/airstrike_fire_03.wav"
+      ],
+      "explode_waves": [
+        "sound/weapons/airstrike_small_explosion_01.wav",
+        "sound/weapons/airstrike_small_explosion_02.wav",
+        "sound/weapons/airstrike_small_explosion_03.wav"
+      ]
+    },
+    {
+      "id": "w_rocket",
+      "name": "TF2 rocket",
+      "kind": "projectile",
+      "mdl": "models/weapons/w_models/w_rocket.mdl",
+      "item_def": null,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": []
+    },
+    {
+      "id": "w_rocket_airstrike",
+      "name": "Air Strike rocket",
+      "kind": "projectile",
+      "mdl": "models/weapons/w_models/w_rocket_airstrike/w_rocket_airstrike.mdl",
+      "item_def": null,
+      "verified_offline": "exported by export_models.py and rendered offline (2026-10-10): launchers share The Original's axes (muzzle +y, grips +x), rockets nose along +x",
+      "verified_in_game": false,
+      "extra": []
+    },
+    {
+      "id": "energy_ball",
+      "name": "Cow Mangler energy ball",
+      "kind": "projectile",
+      "mdl": "",
+      "item_def": null,
+      "extra": [],
+      "note": "TF2's w_drg_ball is a 3 cm placeholder under a particle effect; the plugin draws a glowing sphere instead",
+      "verified_offline": false,
+      "verified_in_game": false
+    },
+    {
+      "id": "straftat_rocket",
+      "name": "STRAFTAT rocket",
+      "kind": "projectile",
+      "mdl": "",
+      "item_def": null,
+      "extra": [],
+      "note": "keep STRAFTAT's own PF_Rocket_00 mesh",
+      "verified_offline": false,
+      "verified_in_game": false
+    }
+  ]
+}

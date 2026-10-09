@@ -1,0 +1,326 @@
+{
+  "sheet": "tf2_values",
+  "about": "TF2 numbers the STRAFTAT mod copies. Each row becomes a constant in the generated Sheets.g.cs. Units convert with units_per_meter (TF2's 82-unit player = STRAFTAT's 1.85 m CharacterController).",
+  "columns": {
+    "id": "row key (C# constant name)",
+    "tf2_value": "the TF2 number",
+    "tf2_unit": "unit in TF2",
+    "straftat_value": "converted value the mod uses",
+    "straftat_unit": "unit in STRAFTAT",
+    "source": "where the TF2 number comes from",
+    "verified_offline": "checked against the game files / documentation",
+    "verified_in_game": "behaviour checked in the running game"
+  },
+  "rows": [
+    {
+      "id": "UnitsPerMeter",
+      "tf2_value": 44.324,
+      "tf2_unit": "units per metre",
+      "straftat_value": 44.324,
+      "straftat_unit": "units per metre",
+      "source": "TF2 hull 82 u / STRAFTAT Player CharacterController 1.85 m",
+      "verified_offline": "both heights read from the game files",
+      "verified_in_game": false
+    },
+    {
+      "id": "RocketSpeed",
+      "tf2_value": 1100,
+      "tf2_unit": "u/s",
+      "straftat_value": 24.817,
+      "straftat_unit": "m/s",
+      "source": "TF2 wiki Rocket Launcher ('around 1100 Hammer units per second')",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "BlastRadius",
+      "tf2_value": 146,
+      "tf2_unit": "u",
+      "straftat_value": 3.294,
+      "straftat_unit": "m",
+      "source": "TF2 wiki: minimum splash 50% at 2.8 m (146 u at 1.905 cm/u)",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "BaseDamage",
+      "tf2_value": 90,
+      "tf2_unit": "hp of 200",
+      "straftat_value": 4.5,
+      "straftat_unit": "health of 10",
+      "source": "TF2 wiki base damage 90; STRAFTAT PlayerHealth.health = 10, so damage x 10/200",
+      "verified_offline": "wiki + PlayerHealth.cs",
+      "verified_in_game": false
+    },
+    {
+      "id": "RampUpMax",
+      "tf2_value": 1.25,
+      "tf2_unit": "x at 0 u",
+      "straftat_value": 1.25,
+      "straftat_unit": "x at 0 m",
+      "source": "TF2 wiki max ramp-up 125%",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "FalloffMin",
+      "tf2_value": 0.528,
+      "tf2_unit": "x at 1024 u",
+      "straftat_value": 0.528,
+      "straftat_unit": "x at 23.1 m",
+      "source": "TF2 wiki max fall-off 52.8%",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "RampDistance",
+      "tf2_value": 512,
+      "tf2_unit": "u (100% point; 0..512 ramp-up, 512..1024 fall-off)",
+      "straftat_value": 11.551,
+      "straftat_unit": "m",
+      "source": "TF2 damage ramp distances (512/1024 u)",
+      "verified_offline": "TF2 damage model (wiki Damage page)",
+      "verified_in_game": false
+    },
+    {
+      "id": "SplashEdgeScale",
+      "tf2_value": 0.5,
+      "tf2_unit": "x at blast edge",
+      "straftat_value": 0.5,
+      "straftat_unit": "x at blast edge",
+      "source": "TF2 wiki minimum splash 50%",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "FireInterval",
+      "tf2_value": 0.8,
+      "tf2_unit": "s",
+      "straftat_value": 0.8,
+      "straftat_unit": "s",
+      "source": "TF2 wiki attack interval 0.8 s",
+      "verified_offline": "TF2 wiki",
+      "verified_in_game": false
+    },
+    {
+      "id": "ForceScaleOther",
+      "tf2_value": 6.0,
+      "tf2_unit": "x damage",
+      "straftat_value": 6.0,
+      "straftat_unit": "x damage",
+      "source": "server.dll tf_damageforcescale_other default '6.0'",
+      "verified_offline": "default string beside the cvar name in this PC's server.dll",
+      "verified_in_game": false
+    },
+    {
+      "id": "ForceScaleSelfAir",
+      "tf2_value": 10.0,
+      "tf2_unit": "x damage",
+      "straftat_value": 10.0,
+      "straftat_unit": "x damage",
+      "source": "server.dll tf_damageforcescale_self_soldier_rj (default 10)",
+      "verified_offline": "cvar present in server.dll; value is TF2's documented default",
+      "verified_in_game": false
+    },
+    {
+      "id": "ForceScaleSelfGround",
+      "tf2_value": 5.0,
+      "tf2_unit": "x damage",
+      "straftat_value": 5.0,
+      "straftat_unit": "x damage",
+      "source": "server.dll tf_damageforcescale_self_soldier_badrj (default 5)",
+      "verified_offline": "cvar present in server.dll; value is TF2's documented default",
+      "verified_in_game": false
+    },
+    {
+      "id": "ForceCap",
+      "tf2_value": 1000,
+      "tf2_unit": "u/s",
+      "straftat_value": 22.561,
+      "straftat_unit": "m/s",
+      "source": "TF2 CTFPlayer::DamageForce clamps to 1000",
+      "verified_offline": "TF2 source behaviour (Source SDK 2013 TF)",
+      "verified_in_game": false
+    },
+    {
+      "id": "CrouchForceBonus",
+      "tf2_value": 1.3226,
+      "tf2_unit": "x (82/62 hull volume)",
+      "straftat_value": 1.3226,
+      "straftat_unit": "x when crouching",
+      "source": "DamageForce scales by 48*48*82 / hull volume; crouched hull 48x48x62",
+      "verified_offline": "TF2 hull sizes",
+      "verified_in_game": false
+    },
+    {
+      "id": "Gravity",
+      "tf2_value": 800,
+      "tf2_unit": "u/s^2",
+      "straftat_value": 18.049,
+      "straftat_unit": "m/s^2",
+      "source": "TF2 sv_gravity 800",
+      "verified_offline": "Source default",
+      "verified_in_game": false
+    },
+    {
+      "id": "AirAccelerate",
+      "tf2_value": 10,
+      "tf2_unit": "sv_airaccelerate",
+      "straftat_value": 10,
+      "straftat_unit": "per second",
+      "source": "TF2 sv_airaccelerate 10",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    },
+    {
+      "id": "AirWishSpeedCap",
+      "tf2_value": 30,
+      "tf2_unit": "u/s",
+      "straftat_value": 0.677,
+      "straftat_unit": "m/s",
+      "source": "Source CGameMovement::AirAccelerate clamps wishspeed to 30",
+      "verified_offline": "Source SDK 2013 gamemovement.cpp",
+      "verified_in_game": false
+    },
+    {
+      "id": "SoldierMaxSpeed",
+      "tf2_value": 240,
+      "tf2_unit": "u/s",
+      "straftat_value": 5.415,
+      "straftat_unit": "m/s",
+      "source": "TF2 Soldier base speed 240",
+      "verified_offline": "TF2 class speed",
+      "verified_in_game": false
+    },
+    {
+      "id": "GroundFriction",
+      "tf2_value": 4,
+      "tf2_unit": "sv_friction",
+      "straftat_value": 4,
+      "straftat_unit": "per second",
+      "source": "TF2 sv_friction 4 (CGameMovement::Friction after a rocket-jump landing)",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    },
+    {
+      "id": "StopSpeed",
+      "tf2_value": 100,
+      "tf2_unit": "u/s",
+      "straftat_value": 2.256,
+      "straftat_unit": "m/s",
+      "source": "TF2 sv_stopspeed 100",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    },
+    {
+      "id": "GroundAccelerate",
+      "tf2_value": 10,
+      "tf2_unit": "sv_accelerate",
+      "straftat_value": 10,
+      "straftat_unit": "per second",
+      "source": "TF2 sv_accelerate 10 (CGameMovement::WalkMove while skidding)",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    },
+    {
+      "id": "SurfaceOffset",
+      "tf2_value": 1,
+      "tf2_unit": "u",
+      "straftat_value": 0.0226,
+      "straftat_unit": "m",
+      "source": "CTFBaseRocket::Explode pulls the blast 1 unit out of the surface it hit",
+      "verified_offline": "TF2 source behaviour",
+      "verified_in_game": false
+    },
+    {
+      "id": "JumpSpeed",
+      "tf2_value": 289,
+      "tf2_unit": "u/s",
+      "straftat_value": 6.52,
+      "straftat_unit": "m/s",
+      "source": "CTFGameMovement::CheckJumpButton jump speed 289 (52 u jump, 72 u crouch-jump)",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "DuckSpeed",
+      "tf2_value": 80,
+      "tf2_unit": "u/s",
+      "straftat_value": 1.805,
+      "straftat_unit": "m/s",
+      "source": "TF2 ducked walking is 1/3 of max speed: Soldier 240 -> 80",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "BunnyJumpMaxFactor",
+      "tf2_value": 1.2,
+      "tf2_unit": "x max speed",
+      "straftat_value": 1.2,
+      "straftat_unit": "x max speed",
+      "source": "CTFGameMovement::PreventBunnyJumping, BUNNYJUMP_MAX_SPEED_FACTOR 1.2: jumping off the ground scales velocity down to 1.2x max speed (288 u/s)",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "HullStandHeight",
+      "tf2_value": 82,
+      "tf2_unit": "u",
+      "straftat_value": 1.85,
+      "straftat_unit": "m",
+      "source": "TF2 player hull height standing",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "HullCrouchHeight",
+      "tf2_value": 62,
+      "tf2_unit": "u",
+      "straftat_value": 1.399,
+      "straftat_unit": "m",
+      "source": "TF2 player hull height ducked (in the air the feet tuck, the top stays)",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "HullHalfWidth",
+      "tf2_value": 24,
+      "tf2_unit": "u",
+      "straftat_value": 0.5415,
+      "straftat_unit": "m",
+      "source": "TF2 player hull is 48 x 48",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "BlastDirectionDrop",
+      "tf2_value": 10,
+      "tf2_unit": "u",
+      "straftat_value": 0.2256,
+      "straftat_unit": "m",
+      "source": "CTFPlayer::OnTakeDamage push direction is from inflictor WorldSpaceCenter - (0,0,10) to the player's centre (pushes lean upward)",
+      "verified_offline": "TF2 source behaviour / defaults",
+      "verified_in_game": false
+    },
+    {
+      "id": "TickInterval",
+      "tf2_value": 0.015,
+      "tf2_unit": "s",
+      "straftat_value": 0.015,
+      "straftat_unit": "s",
+      "source": "TF2 servers run movement at 66.67 ticks/s; air/ground acceleration per tick (air strafing gains speed faster at higher step rates, so it is stepped at TF2's tick)",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    },
+    {
+      "id": "StepSize",
+      "tf2_value": 18,
+      "tf2_unit": "u",
+      "straftat_value": 0.406,
+      "straftat_unit": "m",
+      "source": "CGameMovement::StayOnGround snaps a moving grounded player down up to sv_stepsize 18 units",
+      "verified_offline": "Source/TF2 default",
+      "verified_in_game": false
+    }
+  ]
+}

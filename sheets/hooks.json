@@ -1,0 +1,177 @@
+{
+  "sheet": "hooks",
+  "about": "Harmony patches into STRAFTAT's Assembly-CSharp. Each row becomes one patch class in the plugin.",
+  "columns": {
+    "id": "row key",
+    "target": "STRAFTAT type.method patched",
+    "kind": "prefix | postfix | update",
+    "runs_on": "host | owner client | every client",
+    "does": "what the patch does",
+    "verified_offline": "target signature found in the decompiled code and the plugin compiles",
+    "verified_in_game": "patch fires in the running game"
+  },
+  "rows": [
+    {
+      "id": "round_spawn_give_launcher",
+      "target": "PlayerManager.SpawnPlayer(int,int,Vector3,Quaternion)",
+      "kind": "postfix",
+      "runs_on": "host",
+      "does": "Instantiate the RocketLauncher prefab at each player and ServerManager.Spawn it (same as ItemSpawner.Spawn)",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.0)",
+      "verified_in_game": "play-test 2 (Training Range): 'gave a rocket launcher' then 'picked up the rocket launcher' in the log"
+    },
+    {
+      "id": "client_auto_pickup",
+      "target": "PlayerPickup.Update",
+      "kind": "postfix",
+      "runs_on": "owner client",
+      "does": "Owner only, every 0.2 s: empty right hand takes the nearest launcher within 3 m that nobody holds (ItemBehaviour.rootObject == null, !isTaken), via the body of RightHandPickup",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": "play-test 2 (Training Range): 'gave a rocket launcher' then 'picked up the rocket launcher' in the log"
+    },
+    {
+      "id": "itemspawner_spawn_skip",
+      "target": "ItemSpawner.Spawn",
+      "kind": "prefix",
+      "runs_on": "host",
+      "does": "Return false: pedestals spawn nothing",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.0)",
+      "verified_in_game": false
+    },
+    {
+      "id": "drop_block",
+      "target": "PlayerPickup.RightHandDrop (+ RightHandPickup/LeftHandPickup prefixes block manual pickups)",
+      "kind": "prefix",
+      "runs_on": "owner client",
+      "does": "Return false while the held object is the launcher",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.0)",
+      "verified_in_game": false
+    },
+    {
+      "id": "launcher_fire",
+      "target": "DualLauncher.Fire",
+      "kind": "prefix",
+      "runs_on": "owner client",
+      "does": "needsAmmo = false (infinite, HUD shows the infinity sign), timeBetweenFire = FireInterval, playerKnockback = 0",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.0)",
+      "verified_in_game": false
+    },
+    {
+      "id": "projectile_explode",
+      "target": "PredictedProjectile.Initialize (postfix) / PredictedProjectile.OnDisable (postfix, fires when the rocket bursts)",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "Initialize: usePhysics/useGravity off, MOVE_RATE = RocketSpeed, explosionRadius = BlastRadius, STRAFTAT damage 0. OnDisable (burst): shooter's client applies TF2 damage to everyone else in range via SetKiller/ChangeKilledState/Explode/RemoveHealth; every client pushes its own player with TF2 DamageForce",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": "play-test 3: fires (log 'rocket jump: air, crouched ...' / 'dressed RocketLauncher(Clone) as The Original')"
+    },
+    {
+      "id": "rocket_air_movement",
+      "target": "FirstPersonController.ApplyFinalMovements",
+      "kind": "prefix",
+      "runs_on": "owner client",
+      "does": "While rocket-airborne: Source AirAccelerate + gravity, CharacterController.Move, velocity from the actual motion; bhop landings keep flying; on exit hand horizontal speed to BForce",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": false
+    },
+    {
+      "id": "launcher_visuals",
+      "target": "ItemBehaviour.Update",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "From any launcher's Update (0.25 s timer): set Weapon.fireClip, hide STRAFTAT's launcher renderers and add The Original's mesh, orient it from the camera the first time the local player holds one",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": "play-test 3: fires (log 'rocket jump: air, crouched ...' / 'dressed RocketLauncher(Clone) as The Original')"
+    },
+    {
+      "id": "item_start_no_tween",
+      "target": "ItemBehaviour.Start",
+      "kind": "prefix",
+      "runs_on": "every client",
+      "does": "A launcher with no parent (ours, not from a pedestal) is marked dispenserStart so Start skips the bobbing tween along transform.parent.up that throws",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": false
+    },
+    {
+      "id": "air_crouch",
+      "target": "FirstPersonController.ApplyFinalMovements + AdjustHeight",
+      "kind": "prefix+postfix",
+      "runs_on": "owner client",
+      "does": "Outside rocket flight, airborne + crouching: isCrouching is false while ApplyFinalMovements runs (no crouchGravity). AdjustHeight in the air moves the player by the height change (legs tuck up / come down into free space)",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": false
+    },
+    {
+      "id": "wall_contact",
+      "target": "FirstPersonController.OnControllerColliderHit",
+      "kind": "postfix",
+      "runs_on": "owner client",
+      "does": "During rocket flight's own Move, collect the hit normals for ClipVelocity and the wall momentum window",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.1)",
+      "verified_in_game": false
+    },
+    {
+      "id": "rocket_sweep",
+      "target": "PredictedProjectile.Move + HandleCollision",
+      "kind": "prefix+postfix",
+      "runs_on": "every client",
+      "does": "Raycast each step against the projectile's playerLayer (skipping the shooter and gun); on a hit stop the rocket 1 unit out of the surface, MOVE_RATE 0, skipSafeStartTimer; if STRAFTAT's HandleCollision does not burst it, burst it with its own hitVfx/OnHit/decal/audio and disable it",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.2)",
+      "verified_in_game": false
+    },
+    {
+      "id": "tf2_speed_range",
+      "target": "FirstPersonController.Start",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "walkSpeed/sprintSpeed/airSpeed/sprintAirSpeed = SoldierMaxSpeed, crouchSpeed = DuckSpeed, jumpForce = JumpSpeed, walk/sprintSlideImpulsion x SlideWallScale",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.4)",
+      "verified_in_game": false
+    },
+    {
+      "id": "slide_wall_scale",
+      "target": "FirstPersonController.Jump + BForce",
+      "kind": "prefix/finalizer + prefix",
+      "runs_on": "owner client",
+      "does": "A BForce started inside Jump() (wall jump, slide jump) gets factor x SlideWallScale",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.4)",
+      "verified_in_game": false
+    },
+    {
+      "id": "silent_effects",
+      "target": "PredictedProjectile.Initialize (postfix)",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "Launcher rockets spawn muted copies of objToSpawn/hitVfx/explosionDecal (AudioSources muted, PlayRandomSound/BulletSound off), kept under an inactive DontDestroyOnLoad holder",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.4)",
+      "verified_in_game": false
+    },
+    {
+      "id": "viewmodel_apply",
+      "target": "ItemBehaviour.Update",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "For a launcher held by the local player: ElbowPivotPoint.localPosition = base + (Right, Up, Forward); The Original's localRotation = Euler(Pitch, Yaw, Roll) * base; scale; renderer off when Hide. Other launchers are reset to base",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.7)",
+      "verified_in_game": false
+    },
+    {
+      "id": "viewmodel_panel",
+      "target": "FirstPersonController.HandleMouseLook + DualLauncher.Fire",
+      "kind": "prefix",
+      "runs_on": "owner client",
+      "does": "IMGUI panel on its own HideAndDontSave object toggled by PanelKey (F8); while open, mouse look and firing are skipped and the cursor is free",
+      "verified_offline": "target found in decompiled Assembly-CSharp; plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.7)",
+      "verified_in_game": false
+    },
+    {
+      "id": "projectile_visuals",
+      "target": "PredictedProjectile.Initialize",
+      "kind": "postfix",
+      "runs_on": "every client",
+      "does": "Launcher rockets: STRAFTAT's PF_Rocket_00 forceRenderingOff and a TF2 rocket model under the rocket's graph object (nose +x -> +z); the local player's rockets use their pick, others TF2's rocket",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.1.8)",
+      "verified_in_game": false
+    }
+  ]
+}

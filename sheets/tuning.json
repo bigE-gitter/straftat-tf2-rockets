@@ -1,0 +1,41 @@
+{
+  "sheet": "tuning",
+  "about": "Mod values that are not TF2 numbers: feel settings asked for in play-tests. gen_sheets.py turns each row into a Tuning constant.",
+  "columns": {
+    "id": "constant name",
+    "value": "value used by the plugin",
+    "unit": "unit",
+    "why": "what it does and who asked",
+    "verified_in_game": "checked in the running game"
+  },
+  "rows": [
+    {
+      "id": "WallMomentumTime",
+      "value": 0.4,
+      "unit": "s",
+      "why": "After hitting a wall mid-flight, for this long the speed you had before the hit comes back along the wall if you run along it or wall jump (play-test 2: momentum into a wall run should be conserved briefly)",
+      "verified_in_game": false
+    },
+    {
+      "id": "WallMomentumMinSpeed",
+      "value": 3.0,
+      "unit": "m/s",
+      "why": "Wall hits slower than this do not start the window",
+      "verified_in_game": false
+    },
+    {
+      "id": "SlideWallScale",
+      "value": 0.451,
+      "unit": "x",
+      "why": "STRAFTAT slide impulse and wall/slide-jump push scaled by the drop from STRAFTAT sprint (12 m/s) to Soldier speed (5.415 m/s) (user, 2026-10-10: keep both moves, fit TF2-speed PvP)",
+      "verified_in_game": false
+    },
+    {
+      "id": "JumpBufferTime",
+      "value": 0.2,
+      "unit": "s",
+      "why": "A jump pressed this long before landing from a rocket jump still hops on landing (user, play-test 5: could not chain rocket jumps right after landing)",
+      "verified_in_game": false
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "sheet": "rules",
+  "about": "What the mod changes in STRAFTAT. Each row is one rule and names the Harmony patches (hooks sheet) that enforce it.",
+  "columns": {
+    "id": "row key",
+    "description": "what players experience",
+    "hooks": "hooks sheet rows that implement it",
+    "verified_offline": "STRAFTAT code read / compiled",
+    "verified_in_game": "checked in the running game"
+  },
+  "rows": [
+    {
+      "id": "launcher_only",
+      "description": "Every player starts each round holding STRAFTAT's RocketLauncher (Resources/RandomWeapons/RocketLauncher); nothing else",
+      "hooks": [
+        "round_spawn_give_launcher",
+        "item_start_no_tween",
+        "client_auto_pickup"
+      ],
+      "verified_offline": "PlayerPickup.RightHandPickup flow and SpawnerManager.NameToWeaponDict read",
+      "verified_in_game": "play-tests 2-4: launcher given and auto-picked up on spawn (Training Range)"
+    },
+    {
+      "id": "no_pickups",
+      "description": "Item pedestals spawn nothing; weapons cannot be dropped or swapped",
+      "hooks": [
+        "itemspawner_spawn_skip",
+        "drop_block"
+      ],
+      "verified_offline": "ItemSpawner.Spawn, PlayerPickup.RightHandDrop/LeftHandDrop read",
+      "verified_in_game": false
+    },
+    {
+      "id": "infinite_ammo",
+      "description": "The launcher never runs out",
+      "hooks": [
+        "launcher_fire"
+      ],
+      "verified_offline": "DualLauncher.Fire decrements currentAmmo when needsAmmo",
+      "verified_in_game": false
+    },
+    {
+      "id": "no_recoil_push",
+      "description": "STRAFTAT's fire recoil push (AddForce(-forward, playerKnockback)) is off; rocket jumps come from the blast like TF2",
+      "hooks": [
+        "launcher_fire"
+      ],
+      "verified_offline": "DualLauncher.Fire read",
+      "verified_in_game": false
+    },
+    {
+      "id": "tf2_rocket",
+      "description": "Rocket flies at TF2 speed, fires every 0.8 s, bursts on the first surface it touches (1 unit out of it, no 0.1 s grace), explodes with TF2 radius, damage ramp/fall-off and splash",
+      "hooks": [
+        "launcher_fire",
+        "projectile_explode",
+        "rocket_sweep"
+      ],
+      "verified_offline": "PredictedProjectile.Move/HandleCollision read",
+      "verified_in_game": "play-test 8 (0.1.6, 145 rocket jumps): user - 'it's awesome'; after-push horizontal median 15 m/s (was 20.8), hand-back to STRAFTAT within 0.1-0.3 s at walking speed"
+    },
+    {
+      "id": "no_self_damage",
+      "description": "Your own rockets never hurt you (the push still happens)",
+      "hooks": [
+        "projectile_explode"
+      ],
+      "verified_offline": "PredictedProjectile applies RemoveHealth to every PlayerHealth in radius incl. the shooter",
+      "verified_in_game": false
+    },
+    {
+      "id": "tf2_knockback",
+      "description": "Every player in the blast is pushed with TF2's DamageForce: damage x scale (others 6, self in air 10, self on ground 5), x1.32 crouched, capped at 1000 u/s; a jump pressed in the same frame as the blast counts as airborne (TF2 FL_ONGROUND), so ctaps and jump-and-fire get the air scale; hull and direction are TF2's: 48x48x82 (62 ducked, feet tucked in the air) and the push points from 10 units under the blast to the hull centre",
+      "hooks": [
+        "projectile_explode",
+        "rocket_air_movement"
+      ],
+      "verified_offline": "values in tf2_values",
+      "verified_in_game": "play-test 8 (0.1.6, 145 rocket jumps): user - 'it's awesome'; after-push horizontal median 15 m/s (was 20.8), hand-back to STRAFTAT within 0.1-0.3 s at walking speed"
+    },
+    {
+      "id": "tf2_rocket_air",
+      "description": "After a blast push, the player flies with TF2 air physics (gravity, air acceleration/strafing, no air friction) until back to STRAFTAT walking speed on the ground; landing with jump held or buffered (STRAFTAT bhop) jumps straight on and keeps the TF2 flight going; acceleration and friction step at TF2's 15 ms tick (tf2_values.TickInterval), floors only stop falling, and a grounded player is snapped down over dips up to TF2's 18-unit step",
+      "hooks": [
+        "rocket_air_movement"
+      ],
+      "verified_offline": "FirstPersonController.ApplyFinalMovements / BForce / prejump read",
+      "verified_in_game": "play-test 8 (0.1.6, 145 rocket jumps): user - 'it's awesome'; after-push horizontal median 15 m/s (was 20.8), hand-back to STRAFTAT within 0.1-0.3 s at walking speed"
+    },
+    {
+      "id": "original_look",
+      "description": "The launcher looks and sounds like TF2's The Original (loaded from the player's own TF2): STRAFTAT's mesh hidden, The Original's hand origin on STRAFTAT's right grip under AimStrafePivot, only its own colour texture; fire sound = Weapon.fireClip (The Original's), explosion = the rocket's AudioSource with The Original's blast while STRAFTAT's explosion effects spawn as muted copies",
+      "hooks": [
+        "launcher_visuals",
+        "projectile_explode"
+      ],
+      "verified_offline": "export_original.py + Visuals.cs built; plugin target Weapon.fireClip / projectile AudioSource found in decompiled code",
+      "verified_in_game": "play-test 8 (0.1.6): user - wall momentum and The Original's sounds 'great'"
+    },
+    {
+      "id": "tf2_air_crouch",
+      "description": "Crouching in the air works like TF2's duck: no STRAFTAT crouch fast-fall, the legs tuck up and the view stays; un-crouching lowers the legs only into free space",
+      "hooks": [
+        "air_crouch"
+      ],
+      "verified_offline": "FirstPersonController.HandleCrouch/AdjustHeight and the crouchGravity lines of ApplyFinalMovements read",
+      "verified_in_game": false
+    },
+    {
+      "id": "wall_momentum",
+      "description": "Walls clip flight velocity like Source's ClipVelocity; for tuning.WallMomentumTime after a wall hit, running along the wall or wall jumping gets the pre-hit speed back (air only)",
+      "hooks": [
+        "rocket_air_movement",
+        "wall_contact"
+      ],
+      "verified_offline": "FirstPersonController.OnControllerColliderHit / Jump (wall jump) read",
+      "verified_in_game": "play-test 8 (0.1.6): user - wall momentum and The Original's sounds 'great'"
+    },
+    {
+      "id": "landing",
+      "description": "Landing from a rocket jump: crouched keeps the momentum as a slide (slowing by STRAFTAT's jumpSlopeDecel per second); standing gets TF2 ground friction (sv_friction 4, sv_stopspeed 100) and ground acceleration until STRAFTAT walking speed, then STRAFTAT movement takes over with no leftover push; on hand-back STRAFTAT's smoothed input, speed factor and pushes are set to what is pressed now; a jump pressed up to tuning.JumpBufferTime before landing hops, keeping at most TF2's 1.2x run speed; 'crouched' means the crouch key is held (InputAction crouch.IsPressed, or isCrouching with toggle crouch), not STRAFTAT's isCrouching, which its ceiling ray can force on",
+      "hooks": [
+        "rocket_air_movement"
+      ],
+      "verified_offline": "FirstPersonController.BForce/HandleBForce (0.5 s ground stop) read; walkSpeed 7",
+      "verified_in_game": "play-test 8 (0.1.6, 145 rocket jumps): user - 'it's awesome'; after-push horizontal median 15 m/s (was 20.8), hand-back to STRAFTAT within 0.1-0.3 s at walking speed"
+    },
+    {
+      "id": "tf2_speed_range",
+      "description": "Movement in TF2's speed range (user, 2026-10-10): walk, sprint and air speed = Soldier 240 u/s, ducked 80 u/s, jump 289 u/s, bhop off the ground capped at 1.2x run speed, STRAFTAT slide and wall/slide-jump pushes x tuning.SlideWallScale, the launcher's own movement/jump factors forced to 1",
+      "hooks": [
+        "tf2_speed_range",
+        "slide_wall_scale",
+        "rocket_air_movement",
+        "item_start_no_tween"
+      ],
+      "verified_offline": "FirstPersonController speed fields, CalculateMovementInput, HandleSlide, Jump/BForce read",
+      "verified_in_game": "play-test 8 (0.1.6, 145 rocket jumps): user - 'it's awesome'; after-push horizontal median 15 m/s (was 20.8), hand-back to STRAFTAT within 0.1-0.3 s at walking speed"
+    },
+    {
+      "id": "viewmodel",
+      "description": "Each player places their own launcher: F8 panel with move/turn/size sliders, hide, 'Centered (TF2)' and reset; saved in BepInEx/config/melty.straftat.tf2rockets.cfg; only the local player's first-person launcher changes, rockets still fire from the camera",
+      "hooks": [
+        "viewmodel_apply",
+        "viewmodel_panel"
+      ],
+      "verified_offline": "Weapon.elbowPivot only rotated by STRAFTAT (position free); DualLauncher.Fire spawns from cam position",
+      "verified_in_game": "play-test 9 (0.1.7): user - 'fantastic'"
+    },
+    {
+      "id": "cosmetics",
+      "description": "F8 panel 'Look' (local only): your launcher model (11 TF2 rocket launchers, sheets/models.json), your rockets' model (TF2 rocket, Air Strike rocket, Cow Mangler energy ball, STRAFTAT rocket), the TF2 sounds you fire and explode with ('same as launcher' or any launcher's, a random pick per shot like TF2), colour (RGB + presets), opacity (texture alpha ignored when see-through) and an unusual effect (Unity look-alikes of TF2's Hot, Isotope, Cool, Energy Orb). Other players' launchers show The Original with its sounds and their rockets TF2's rocket on your screen",
+      "hooks": [
+        "viewmodel_apply",
+        "viewmodel_panel",
+        "projectile_visuals"
+      ],
+      "verified_offline": "models exported and rendered offline",
+      "verified_in_game": false
+    }
+  ]
+}
