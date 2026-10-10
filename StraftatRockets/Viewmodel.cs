@@ -57,7 +57,8 @@ namespace StraftatRockets
             Places[3] = P("Viewmodel.MarketGardener", "Market Gardener");
             ScopeOpacity = cfg.Bind("Look", "ScopeOpacity", 1f, new ConfigDescription("How solid the sniper scope's black surround and lines are (1 = STRAFTAT's normal scope)", new AcceptableValueRange<float>(0f, 1f)));
             Melee = cfg.Bind("Look", "Melee", "market_gardener", "Model your Market Gardener shows: any TF2 or STRAFTAT melee weapon (it still works as the Market Gardener)");
-            SpinKey = cfg.Bind("Viewmodel", "SpinKey", KeyCode.G, "Key that spins your weapon (each press starts a new spin)");
+            SpinKey = cfg.Bind("Viewmodel", "SpinKey", KeyCode.V, "Key that spins your weapon (each press starts a new spin)");
+            if (SpinKey.Value == KeyCode.G) SpinKey.Value = KeyCode.V; // 0.3.3 default moved to V (unbound in STRAFTAT)
             Sniper = cfg.Bind("Look", "Sniper", "sniper_rifle", "Sniper model in Jump & Snipe: a TF2 rifle or a STRAFTAT gun (ids in sheets/models.json)");
             Hide = cfg.Bind("Viewmodel", "Hide", false, "Hide your own launcher (like TF2's r_drawviewmodel 0)");
             PanelKey = cfg.Bind("Viewmodel", "PanelKey", KeyCode.F8, "Key that opens the viewmodel panel");
@@ -85,8 +86,8 @@ namespace StraftatRockets
                 bool straftat = Visuals.Get(Arsenal.ModelForSlot())?.Kind == "straftat_melee";
                 pitch += (straftat ? 0f : 35f) + 80f * Arsenal.SwingPhase();
             }
-            // the spin turns the weapon about its own length: up for melee weapons, forward for the guns
-            var spin = Quaternion.AngleAxis(_spinAngle, Arsenal.Slot == 3 ? Vector3.up : Vector3.forward);
+            // the spin flips the weapon end over end, about its left-right axis
+            var spin = Quaternion.AngleAxis(_spinAngle, Vector3.right);
             return Quaternion.Euler(pitch, 0f, 0f) * spin;
         }
 
