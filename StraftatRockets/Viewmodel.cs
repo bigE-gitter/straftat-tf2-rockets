@@ -22,8 +22,12 @@ namespace StraftatRockets
         internal static ConfigEntry<float> Yaw => Active.Yaw;
         internal static ConfigEntry<float> Roll => Active.Roll;
         internal static ConfigEntry<float> Scale => Active.Scale;
-        internal static ConfigEntry<string> Sniper;
+        internal static ConfigEntry<string> Sniper, Melee;
         internal static ConfigEntry<float> ScopeOpacity;
+        internal static ConfigEntry<KeyCode> SpinKey;
+        // the spin: each press starts a new full turn from wherever the weapon is (interrupting the one before)
+        private static float _spinFrom, _spinStart = -10f, _spinAngle;
+        private const float SpinTime = 0.5f;
         internal static ConfigEntry<bool> Hide;
         internal static ConfigEntry<KeyCode> PanelKey;
         // rules.cosmetics
@@ -52,6 +56,8 @@ namespace StraftatRockets
             Places[2] = P("Viewmodel.Sniper", "sniper");
             Places[3] = P("Viewmodel.MarketGardener", "Market Gardener");
             ScopeOpacity = cfg.Bind("Look", "ScopeOpacity", 1f, new ConfigDescription("How solid the sniper scope's black surround and lines are (1 = STRAFTAT's normal scope)", new AcceptableValueRange<float>(0f, 1f)));
+            Melee = cfg.Bind("Look", "Melee", "market_gardener", "Model your Market Gardener shows: any TF2 or STRAFTAT melee weapon (it still works as the Market Gardener)");
+            SpinKey = cfg.Bind("Viewmodel", "SpinKey", KeyCode.G, "Key that spins your weapon (each press starts a new spin)");
             Sniper = cfg.Bind("Look", "Sniper", "sniper_rifle", "Sniper model in Jump & Snipe: a TF2 rifle or a STRAFTAT gun (ids in sheets/models.json)");
             Hide = cfg.Bind("Viewmodel", "Hide", false, "Hide your own launcher (like TF2's r_drawviewmodel 0)");
             PanelKey = cfg.Bind("Viewmodel", "PanelKey", KeyCode.F8, "Key that opens the viewmodel panel");
@@ -73,8 +79,30 @@ namespace StraftatRockets
         {
             float deploy = Mathf.Clamp01((Arsenal.DeployedAt - Time.time) / Tf2.DeployTime);
             float pitch = 55f * deploy * deploy;
-            if (Arsenal.Slot == 3) pitch += 35f + 80f * Arsenal.SwingPhase(); // shovel held up and forward, swung down
-            return Quaternion.Euler(pitch, 0f, 0f);
+            if (Arsenal.Slot == 3)
+            {
+                // TF2 melee models stand upright from the hand: lean them forward; STRAFTAT's are already held
+                bool straftat = Visuals.Get(Arsenal.ModelForSlot())?.Kind == "straftat_melee";
+                pitch += (straftat ? 0f : 35f) + 80f * Arsenal.SwingPhase();
+            }
+            // the spin turns the weapon about its own length: up for melee weapons, forward for the guns
+            var spin = Quaternion.AngleAxis(_spinAngle, Arsenal.Slot == 3 ? Vector3.up : Vector3.forward);
+            return Quaternion.Euler(pitch, 0f, 0f) * spin;
+        }
+
+        /// hooks.viewmodel_spin: from the panel object's Update, every frame
+        internal static void TickSpin()
+        {
+            if (!ViewmodelPanel.Open && Input.GetKeyDown(SpinKey.Value))
+            {
+                _spinFrom = _spinAngle % 360f;
+                _spinStart = Time.time;
+            }
+            float t = Mathf.Clamp01((Time.time - _spinStart) / SpinTime);
+            float eased = 1f - (1f - t) * (1f - t) * (1f - t); // fast start, settles at the end
+            // at least one full turn from where it is, ending upright (a whole number of turns)
+            float target = _spinFrom > 0.5f ? 720f : 360f;
+            _spinAngle = t >= 1f ? 0f : _spinFrom + (target - _spinFrom) * eased;
         }
 
         internal static void ResetAll()
@@ -89,6 +117,7 @@ namespace StraftatRockets
             Model.Value = Visuals.DefaultLauncher;
             Projectile.Value = Visuals.DefaultProjectile;
             Sniper.Value = "sniper_rifle";
+            Melee.Value = "market_gardener";
             ScopeOpacity.Value = 1f;
             Sound.Value = "match";
             Unusual.Value = "none";
@@ -159,7 +188,7 @@ namespace StraftatRockets
             bool hidden = mine && Hide.Value;
             // rules.loadout: a STRAFTAT gun picked as the sniper is shown from the game's own weapon prefab
             var model = mine ? Visuals.Get(Arsenal.ModelForSlot()) : null;
-            bool native = model != null && model.Kind == "straftat_sniper";
+            bool native = model != null && (model.Kind == "straftat_sniper" || model.Kind == "straftat_melee");
             if (native) Visuals.ShowNative(m, model.Prefab, pose, Scale.Value, !hidden);
             else Visuals.HideNative(m);
             if (m.Renderer != null) m.Renderer.enabled = !hidden && !native;
@@ -191,6 +220,7 @@ namespace StraftatRockets
         private void Update()
         {
             if (Input.GetKeyDown(Viewmodel.PanelKey.Value)) SetOpen(!Open);
+            Viewmodel.TickSpin();
         }
 
 
@@ -260,6 +290,26 @@ namespace StraftatRockets
             IdPicker("Sounds", Viewmodel.Sound, ids, Viewmodel.Sound.Value == "match" ? "Same as launcher" : (cur != null ? cur.Name : Viewmodel.Sound.Value));
         }
 
+        private static string _openList;
+        private static Vector2 _listScroll;
+
+        /// A picker with arrows plus a scrollable list (the melee list is long).
+        private static void ListPicker(string label, ConfigEntry<string> entry, System.Collections.Generic.List<TF2Model> list)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(70));
+            if (GUILayout.Button("<", GUILayout.Width(28))) Viewmodel.Step(entry, list, -1);
+            var cur = list.Find(m => m.Id == entry.Value);
+            if (GUILayout.Button(cur != null ? cur.Name : entry.Value, GUILayout.Width(200))) _openList = _openList == label ? null : label;
+            if (GUILayout.Button(">", GUILayout.Width(28))) Viewmodel.Step(entry, list, 1);
+            GUILayout.EndHorizontal();
+            if (_openList != label) return;
+            _listScroll = GUILayout.BeginScrollView(_listScroll, GUILayout.Height(180));
+            foreach (var m in list)
+                if (GUILayout.Toggle(m.Id == entry.Value, m.Name) && m.Id != entry.Value) { entry.Value = m.Id; _openList = null; }
+            GUILayout.EndScrollView();
+        }
+
         private void Draw(int id)
         {
             GUILayout.BeginHorizontal();
@@ -274,6 +324,7 @@ namespace StraftatRockets
             Picker("Rocket", Viewmodel.Projectile, Visuals.Projectiles);
             SoundPicker();
             Picker("Sniper", Viewmodel.Sniper, Visuals.Snipers);
+            ListPicker("Melee", Viewmodel.Melee, Visuals.Melees);
             Slider("Scope", Viewmodel.ScopeOpacity, 0f, 1f, "0.00");
             IdPicker("Unusual", Viewmodel.Unusual, Unusuals.Ids, Unusuals.NameOf(Viewmodel.Unusual.Value));
             Slider("Strength", Viewmodel.UnusualStrength, 0.25f, 3f, "0.00");

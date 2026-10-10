@@ -67,44 +67,69 @@ namespace StraftatRockets
 
         // ------------------------------------------------------------------ loading
         /// Everything in ModelSheet.Rows into Visuals; returns how many models loaded.
+        // kept after startup so models picked later (the melee list) load on demand
+        private static readonly List<Vpk> Vpks = new List<Vpk>();
+        private static string _tf;
+        private static readonly Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
+
+        private static byte[] Read(string path)
+        {
+            path = path.ToLowerInvariant();
+            foreach (var v in Vpks) { var d = v.Read(path); if (d != null) return d; }
+            var loose = Path.Combine(_tf, path.Replace('/', Path.DirectorySeparatorChar));
+            return File.Exists(loose) ? File.ReadAllBytes(loose) : null;
+        }
+
+        /// The studio model(s) of a row into a TF2Model mesh.
+        private static void LoadMesh(TF2Model model, string mdlPath, string[] extra)
+        {
+            var parts = new List<StudioMesh>();
+            foreach (var mdl in Concat(mdlPath, extra))
+            {
+                var sm = StudioMesh.Load(Read, mdl);
+                if (sm == null) throw new FileNotFoundException(mdl + " is not in your TF2");
+                parts.Add(sm);
+            }
+            Visuals.BuildModel(model, Merge(parts, Read, Textures));
+        }
+
+        /// rules.loadout: a melee model the first time it is picked (75 of them would slow every start).
+        internal static bool LoadLazy(TF2Model model)
+        {
+            if (model.Mesh != null) return true;
+            if (model.LazyTried || Vpks.Count == 0 || string.IsNullOrEmpty(model.Mdl)) return false;
+            model.LazyTried = true;
+            try
+            {
+                LoadMesh(model, model.Mdl, new string[0]);
+                Plugin.Log.LogInfo($"loaded {model.Name} from your TF2");
+                return true;
+            }
+            catch (Exception e) { Plugin.Log.LogWarning($"{model.Name}: {e.Message}"); return false; }
+        }
+
         internal static int LoadAll(string tf)
         {
-            var vpks = new List<Vpk>();
+            _tf = tf;
+            Vpks.Clear();
             foreach (var f in Directory.GetFiles(tf, "*_dir.vpk"))
             {
                 if (Path.GetFileName(f).IndexOf("_vo_", StringComparison.OrdinalIgnoreCase) >= 0) continue; // voice packs
-                try { vpks.Add(new Vpk(f)); } catch (Exception e) { Plugin.Log.LogWarning($"{Path.GetFileName(f)}: {e.Message}"); }
+                try { Vpks.Add(new Vpk(f)); } catch (Exception e) { Plugin.Log.LogWarning($"{Path.GetFileName(f)}: {e.Message}"); }
             }
-            byte[] Read(string path)
-            {
-                path = path.ToLowerInvariant();
-                foreach (var v in vpks) { var d = v.Read(path); if (d != null) return d; }
-                var loose = Path.Combine(tf, path.Replace('/', Path.DirectorySeparatorChar));
-                return File.Exists(loose) ? File.ReadAllBytes(loose) : null;
-            }
-            var textures = new Dictionary<string, Texture2D>();
             int loaded = 0;
             foreach (var row in ModelSheet.Rows)
             {
                 try
                 {
                     if (row.Kind == "straftat_sniper") continue; // shown from STRAFTAT's own prefab (Visuals.Load)
-                    var model = new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind, Prefab = row.Prefab };
-                    if (!string.IsNullOrEmpty(row.Mdl))
-                    {
-                        var parts = new List<StudioMesh>();
-                        foreach (var mdl in Concat(row.Mdl, row.Extra))
-                        {
-                            var sm = StudioMesh.Load(Read, mdl);
-                            if (sm == null) throw new FileNotFoundException(mdl + " is not in your TF2");
-                            parts.Add(sm);
-                        }
-                        Visuals.BuildModel(model, Merge(parts, Read, textures));
-                    }
+                    var model = new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind, Prefab = row.Prefab, Mdl = row.Mdl };
+                    if (row.Kind == "melee") { Visuals.Add(model); continue; } // loaded when picked
+                    if (!string.IsNullOrEmpty(row.Mdl)) LoadMesh(model, row.Mdl, row.Extra);
                     Visuals.Add(model);
                     loaded++;
                     if (row.FireWaves.Length > 0 || row.ExplodeWaves.Length > 0)
-                        Visuals.Sounds[row.Id] = new SoundSet { Id = row.Id, Fire = Clips(Read, row.FireWaves, row.Id + "_fire"), Explode = Clips(Read, row.ExplodeWaves, row.Id + "_explode") };
+                        Visuals.Sounds[row.Id] = new SoundSet { Id = row.Id, Fire = Clips(row.FireWaves, row.Id + "_fire"), Explode = Clips(row.ExplodeWaves, row.Id + "_explode") };
                 }
                 catch (Exception e) { Plugin.Log.LogWarning($"{row.Name}: {e.Message}"); }
             }
@@ -117,12 +142,12 @@ namespace StraftatRockets
             foreach (var r in rest) yield return r;
         }
 
-        private static AudioClip[] Clips(Func<string, byte[]> read, string[] waves, string name)
+        private static AudioClip[] Clips(string[] waves, string name)
         {
             var clips = new List<AudioClip>();
             foreach (var w in waves)
             {
-                var data = read(w);
+                var data = Read(w);
                 var clip = data != null ? Visuals.WavClip(data, $"TF2_{name}_{clips.Count}") : null;
                 if (clip != null) clips.Add(clip);
             }

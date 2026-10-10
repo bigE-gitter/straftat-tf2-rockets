@@ -28,7 +28,8 @@ namespace StraftatRockets
     /// One row of sheets/models.json as loaded in game.
     internal class TF2Model
     {
-        public string Id, Name, Kind, Prefab;
+        public string Id, Name, Kind, Prefab, Mdl;
+        public bool LazyTried;
         public Mesh Mesh;            // null for the ones the plugin draws itself (energy ball, STRAFTAT rocket)
         public Texture2D[] Textures; // one per submesh
     }
@@ -67,6 +68,7 @@ namespace StraftatRockets
         internal static readonly List<TF2Model> Launchers = new List<TF2Model>();
         internal static readonly List<TF2Model> Projectiles = new List<TF2Model>();
         internal static readonly List<TF2Model> Snipers = new List<TF2Model>();
+        internal static readonly List<TF2Model> Melees = new List<TF2Model>();
         private static readonly Dictionary<string, TF2Model> ById = new Dictionary<string, TF2Model>();
         internal static readonly Dictionary<string, SoundSet> Sounds = new Dictionary<string, SoundSet>();
         private static readonly Dictionary<Texture2D, Texture2D> OpaqueCopies = new Dictionary<Texture2D, Texture2D>();
@@ -100,9 +102,10 @@ namespace StraftatRockets
                 catch (Exception e) { Plugin.Log.LogWarning($"reading TF2 at {tf} failed: {e}"); }
             }
             else Plugin.Log.LogWarning("Team Fortress 2 was not found through Steam (set Paths.TF2Folder in the config to its 'tf' folder)");
-            // STRAFTAT's own guns need nothing from TF2
+            // STRAFTAT's own guns and melee weapons need nothing from TF2
             foreach (var row in ModelSheet.Rows)
                 if (row.Kind == "straftat_sniper") Add(new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind, Prefab = row.Prefab });
+            AddStraftatMelees();
             if (Get(DefaultLauncher) == null) LoadExported(pluginDir);
             if (Get(DefaultLauncher) == null)
             {
@@ -125,7 +128,40 @@ namespace StraftatRockets
             if (m.Kind == "launcher") Launchers.Add(m);
             else if (m.Kind == "projectile") Projectiles.Add(m);
             else if (m.Kind == "sniper" || m.Kind == "straftat_sniper") Snipers.Add(m);
+            else if (m.Id == "market_gardener") Melees.Insert(0, m);
+            else if (m.Kind == "melee" || m.Kind == "straftat_melee") Melees.Add(m);
             ById[m.Id] = m; // weapons (sniper, Market Gardener) and sound-only rows are looked up by id
+        }
+
+        /// Every STRAFTAT melee weapon (a weapon prefab with a MeleeWeapon), listed from the game itself.
+        private static void AddStraftatMelees()
+        {
+            try
+            {
+                SpawnerManager.PopulateAllWeapons();
+                var found = new List<TF2Model>();
+                foreach (var w in SpawnerManager.AllWeapons)
+                    if (w != null && w.GetComponent<MeleeWeapon>() != null)
+                        found.Add(new TF2Model { Id = "straftat_" + w.name.ToLowerInvariant(), Name = Pretty(w.name) + " (STRAFTAT)", Kind = "straftat_melee", Prefab = w.name });
+                found.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+                foreach (var m in found) Add(m);
+                Plugin.Log.LogInfo($"{found.Count} STRAFTAT melee weapons can be shown as your Market Gardener");
+            }
+            catch (Exception e) { Plugin.Log.LogWarning($"listing STRAFTAT's melee weapons failed: {e.Message}"); }
+        }
+
+        private static string Pretty(string name)
+        {
+            name = name.StartsWith("DF_") ? name.Substring(3) : name;
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                char c = name[i];
+                if (c == '_') { sb.Append(' '); continue; }
+                if (i > 0 && char.IsUpper(c) && char.IsLower(name[i - 1])) sb.Append(' ');
+                sb.Append(i == 0 ? char.ToUpperInvariant(c) : c);
+            }
+            return sb.ToString();
         }
 
         internal static GameObject StraftatPrefab(string name)
@@ -497,6 +533,7 @@ namespace StraftatRockets
         internal static void SetLook(OriginalMarker marker, string modelId, Color tint, float opacity)
         {
             var model = Get(modelId) ?? Get(DefaultLauncher);
+            if (model != null && model.Mesh == null && model.Kind == "melee" && !TF2Import.LoadLazy(model)) model = Get("market_gardener");
             if (model?.Mesh == null) return;
             string look = $"{model.Id}|{tint.r:0.00},{tint.g:0.00},{tint.b:0.00}|{opacity:0.00}";
             if (marker.Look == look) return;

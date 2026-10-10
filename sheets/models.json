@@ -4,7 +4,7 @@
   "columns": {
     "id": "config value and file name",
     "name": "shown in the F8 panel",
-    "kind": "launcher | projectile | sniper (TF2 rifle for slot 2) | straftat_sniper (a STRAFTAT gun shown from the game's own prefab) | weapon (other slot models) | sound (sound set only)",
+    "kind": "launcher | projectile | sniper (TF2 rifle for slot 2) | straftat_sniper (a STRAFTAT gun shown from the game's own prefab) | melee (TF2 melee model for slot 3, loaded when picked) | weapon (other slot models) | sound (sound set only)",
     "mdl": "path inside TF2's VPKs",
     "item_def": "items_game item id (launchers)",
     "verified_offline": "exported and rendered offline",
@@ -504,6 +504,746 @@
       "item_def": null,
       "extra": [],
       "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/elephant); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_sr3_punch",
+      "name": "Apoco-Fists",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_sr3_punch/c_sr3_punch.mdl",
+      "item_def": 587,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_bonk_bat",
+      "name": "Atomizer",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_bonk_bat/c_bonk_bat.mdl",
+      "item_def": 450,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_axtinguisher_pyro",
+      "name": "Axtinguisher",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_axtinguisher/c_axtinguisher_pyro.mdl",
+      "item_def": 38,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_back_scratcher",
+      "name": "Back Scratcher",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_back_scratcher/c_back_scratcher.mdl",
+      "item_def": 326,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_bat",
+      "name": "Bat",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_bat.mdl",
+      "item_def": 0,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_skullbat",
+      "name": "Bat Outta Hell",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_skullbat/c_skullbat.mdl",
+      "item_def": 939,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_invasion_bat",
+      "name": "Batsaber",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_invasion_bat/c_invasion_bat.mdl",
+      "item_def": 30667,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_switchblade",
+      "name": "Big Earner",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_switchblade/c_switchblade.mdl",
+      "item_def": 461,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_ava_roseknife",
+      "name": "Black Rose",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_ava_roseknife/c_ava_roseknife.mdl",
+      "item_def": 727,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_bonesaw",
+      "name": "Bonesaw",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_bonesaw/c_bonesaw.mdl",
+      "item_def": 8,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_boston_basher",
+      "name": "Boston Basher",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_boston_basher/c_boston_basher.mdl",
+      "item_def": 325,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_bottle",
+      "name": "Bottle",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_bottle/c_bottle.mdl",
+      "item_def": 1,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_breadmonster_gloves",
+      "name": "Bread Bite",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_breadmonster_gloves/c_breadmonster_gloves.mdl",
+      "item_def": 1100,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_croc_knife",
+      "name": "Bushwacka",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_croc_knife/c_croc_knife.mdl",
+      "item_def": 232,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_candy_cane",
+      "name": "Candy Cane",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_candy_cane/c_candy_cane.mdl",
+      "item_def": 317,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_claidheamohmor",
+      "name": "Claidheamohmor",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_claidheamohmor/c_claidheamohmor.mdl",
+      "item_def": 327,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_shogun_kunai",
+      "name": "Conniver's Kunai",
+      "kind": "melee",
+      "mdl": "models/workshop_partner/weapons/c_models/c_shogun_kunai/c_shogun_kunai.mdl",
+      "item_def": 356,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_picket",
+      "name": "Conscientious Objector",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_picket/c_picket.mdl",
+      "item_def": 474,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_crossing_guard",
+      "name": "Crossing Guard",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_crossing_guard/c_crossing_guard.mdl",
+      "item_def": 1127,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_riding_crop",
+      "name": "Disciplinary Action",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_riding_crop/c_riding_crop.mdl",
+      "item_def": 447,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_pickaxe_s2",
+      "name": "Equalizer",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_pickaxe/c_pickaxe_s2.mdl",
+      "item_def": 128,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_pickaxe",
+      "name": "Escape Plan",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_pickaxe/c_pickaxe.mdl",
+      "item_def": 775,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_drg_wrenchmotron",
+      "name": "Eureka Effect",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_drg_wrenchmotron/c_drg_wrenchmotron.mdl",
+      "item_def": 589,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_eviction_notice",
+      "name": "Eviction Notice",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_eviction_notice/c_eviction_notice.mdl",
+      "item_def": 426,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_claymore",
+      "name": "Eyelander",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_claymore/c_claymore.mdl",
+      "item_def": 132,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_shogun_warfan",
+      "name": "Fan O'War",
+      "kind": "melee",
+      "mdl": "models/workshop_partner/weapons/c_models/c_shogun_warfan/c_shogun_warfan.mdl",
+      "item_def": 355,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_fireaxe_pyro",
+      "name": "Fire Axe",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_fireaxe_pyro/c_fireaxe_pyro.mdl",
+      "item_def": 2,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_fists_of_steel",
+      "name": "Fists of Steel",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_fists_of_steel/c_fists_of_steel.mdl",
+      "item_def": 331,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_tw_eagle",
+      "name": "Freedom Staff",
+      "kind": "melee",
+      "mdl": "models/workshop_partner/weapons/c_models/c_tw_eagle/c_tw_eagle.mdl",
+      "item_def": 880,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_frying_pan",
+      "name": "Frying Pan",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_frying_pan/c_frying_pan.mdl",
+      "item_def": 264,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_ham",
+      "name": "Ham Shank",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_ham/c_ham.mdl",
+      "item_def": 1013,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_xms_gloves",
+      "name": "Holiday Punch",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_xms_gloves/c_xms_gloves.mdl",
+      "item_def": 656,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_holymackerel",
+      "name": "Holy Mackerel",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_holymackerel/c_holymackerel.mdl",
+      "item_def": 221,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_sledgehammer",
+      "name": "Homewrecker",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_sledgehammer/c_sledgehammer.mdl",
+      "item_def": 153,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_headtaker",
+      "name": "Horseless Headless Horseman's Headtaker",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_headtaker/c_headtaker.mdl",
+      "item_def": 266,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_slapping_glove",
+      "name": "Hot Hand",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_slapping_glove/c_slapping_glove.mdl",
+      "item_def": 1181,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_jag",
+      "name": "Jag",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_jag/c_jag.mdl",
+      "item_def": 329,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_boxing_gloves",
+      "name": "Killing Gloves of Boxing",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_boxing_gloves/c_boxing_gloves.mdl",
+      "item_def": 43,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_knife",
+      "name": "Knife",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_knife/c_knife.mdl",
+      "item_def": 4,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_machete",
+      "name": "Kukri",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_machete/c_machete.mdl",
+      "item_def": 3,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_lollichop",
+      "name": "Lollichop",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_lollichop/c_lollichop.mdl",
+      "item_def": 739,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_rfa_hammer",
+      "name": "Maul",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_rfa_hammer/c_rfa_hammer.mdl",
+      "item_def": 466,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_8mm_camera",
+      "name": "Memory Maker",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_8mm_camera/c_8mm_camera.mdl",
+      "item_def": 954,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_carnival_mallet",
+      "name": "Necro Smasher",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_carnival_mallet/c_carnival_mallet.mdl",
+      "item_def": 1123,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_golfclub",
+      "name": "Nessie's Nine Iron",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_golfclub/c_golfclub.mdl",
+      "item_def": 482,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_paintrain",
+      "name": "Pain Train",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_paintrain/c_paintrain.mdl",
+      "item_def": 154,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_demo_sultan_sword",
+      "name": "Persian Persuader",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_demo_sultan_sword/c_demo_sultan_sword.mdl",
+      "item_def": 404,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_mailbox",
+      "name": "Postal Pummeler",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_mailbox/c_mailbox.mdl",
+      "item_def": 457,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_powerjack",
+      "name": "Powerjack",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_powerjack/c_powerjack.mdl",
+      "item_def": 214,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_prinny_knife",
+      "name": "Prinny Machete",
+      "kind": "melee",
+      "mdl": "models/workshop_partner/weapons/c_models/c_prinny_knife/c_prinny_knife.mdl",
+      "item_def": 30758,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_wooden_bat",
+      "name": "Sandman",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_wooden_bat/c_wooden_bat.mdl",
+      "item_def": 44,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_saxxy",
+      "name": "Saxxy",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_saxxy/c_saxxy.mdl",
+      "item_def": 423,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_battleaxe",
+      "name": "Scotsman's Skullcutter",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_battleaxe/c_battleaxe.mdl",
+      "item_def": 172,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_scotland_shard",
+      "name": "Scottish Handshake",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_scotland_shard/c_scotland_shard.mdl",
+      "item_def": 609,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_scimitar",
+      "name": "Shahanshah",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_scimitar/c_scimitar.mdl",
+      "item_def": 401,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_acr_hookblade",
+      "name": "Sharp Dresser",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_acr_hookblade/c_acr_hookblade.mdl",
+      "item_def": 638,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_rift_fire_axe",
+      "name": "Sharpened Volcano Fragment",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_rift_fire_axe/c_rift_fire_axe.mdl",
+      "item_def": 348,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_shovel",
+      "name": "Shovel",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_shovel/c_shovel.mdl",
+      "item_def": 6,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_hippocrates_bust",
+      "name": "Solemn Vow",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_hippocrates_bust/c_hippocrates_bust.mdl",
+      "item_def": 413,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_spikewrench",
+      "name": "Southern Hospitality",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_spikewrench/c_spikewrench.mdl",
+      "item_def": 155,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_xms_cold_shoulder",
+      "name": "Spy-cicle",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_xms_cold_shoulder/c_xms_cold_shoulder.mdl",
+      "item_def": 649,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_rift_fire_mace",
+      "name": "Sun-on-a-Stick",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_rift_fire_mace/c_rift_fire_mace.mdl",
+      "item_def": 349,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_drg_thirddegree",
+      "name": "Third Degree",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_drg_thirddegree/c_drg_thirddegree.mdl",
+      "item_def": 593,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_scout_sword",
+      "name": "Three-Rune Blade",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_scout_sword/c_scout_sword.mdl",
+      "item_def": 452,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_wood_machete",
+      "name": "Tribalman's Shiv",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_wood_machete/c_wood_machete.mdl",
+      "item_def": 171,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_ubersaw",
+      "name": "Ubersaw",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_ubersaw/c_ubersaw.mdl",
+      "item_def": 37,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_caber",
+      "name": "Ullapool Caber",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_caber/c_caber.mdl",
+      "item_def": 307,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_unarmed_combat",
+      "name": "Unarmed Combat",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_unarmed_combat/c_unarmed_combat.mdl",
+      "item_def": 572,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_uberneedle",
+      "name": "Vita-Saw",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_uberneedle/c_uberneedle.mdl",
+      "item_def": 173,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_voodoo_pin",
+      "name": "Wanga Prick",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_voodoo_pin/c_voodoo_pin.mdl",
+      "item_def": 574,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_bear_claw",
+      "name": "Warrior's Spirit",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_bear_claw/c_bear_claw.mdl",
+      "item_def": 310,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_xms_giftwrap",
+      "name": "Wrap Assassin",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_xms_giftwrap/c_xms_giftwrap.mdl",
+      "item_def": 648,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_wrench",
+      "name": "Wrench",
+      "kind": "melee",
+      "mdl": "models/weapons/c_models/c_wrench/c_wrench.mdl",
+      "item_def": 7,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
+      "verified_in_game": false
+    },
+    {
+      "id": "melee_c_eternal_reward",
+      "name": "Your Eternal Reward",
+      "kind": "melee",
+      "mdl": "models/workshop/weapons/c_models/c_eternal_reward/c_eternal_reward.mdl",
+      "item_def": 225,
+      "extra": [],
+      "verified_offline": "listed from items_game.txt",
       "verified_in_game": false
     }
   ]

@@ -55,7 +55,7 @@ namespace StraftatRockets
         internal static string SlotName(int s)
         {
             if (s == 2) { var sn = Visuals.Get(Viewmodel.Sniper.Value); return sn != null ? sn.Name : "Sniper Rifle"; }
-            if (s == 3) return "Market Gardener";
+            if (s == 3) { var ml = Visuals.Get(Viewmodel.Melee.Value); return ml != null && ml.Id != "market_gardener" ? ml.Name + " (Market Gardener)" : "Market Gardener"; }
             var m = Visuals.Get(Viewmodel.Model.Value);
             return m != null ? m.Name : "Rocket Launcher";
         }
@@ -64,7 +64,7 @@ namespace StraftatRockets
         internal static string ModelForSlot()
         {
             if (Slot == 2) return Visuals.Get(Viewmodel.Sniper.Value) != null ? Viewmodel.Sniper.Value : "sniper_rifle";
-            if (Slot == 3) return "market_gardener";
+            if (Slot == 3) return Visuals.Get(Viewmodel.Melee.Value) != null ? Viewmodel.Melee.Value : "market_gardener";
             return Viewmodel.Model.Value; // your F8 launcher pick in both modes
         }
 
@@ -153,9 +153,10 @@ namespace StraftatRockets
         {
             if (!__instance.IsOwner) return;
             RefreshMode();
-            if (!Holding(out _, out var weapon)) { ScopeAlpha(1f); return; }
-            ApplyAim(weapon.GetComponent<ItemBehaviour>(), LocalPlayer.Controller);
-            ScopeAlpha(Slot == 2 ? Viewmodel.ScopeOpacity.Value : 1f);
+            if (!Holding(out _, out var weapon)) return;
+            var item = weapon.GetComponent<ItemBehaviour>();
+            ApplyAim(item, LocalPlayer.Controller);
+            if (Slot == 2) ScopeSprite(item);
             var pm = PauseManager.Instance;
             bool blocked = ViewmodelPanel.Open || (pm != null && (pm.pause || pm.chatting));
             if (!blocked)
@@ -321,14 +322,72 @@ namespace StraftatRockets
             if (Plugin.IsLauncher(__instance.gameObject)) Rockets.IncomingSlot = id & 3;
         }
 
-        /// rules.sniper_rifle: how see-through STRAFTAT's scope image (black surround and lines) is, from the F8 slider
-        private static void ScopeAlpha(float a)
+        /// rules.sniper_rifle: the F8 'Scope' slider fades only the black surround of STRAFTAT's M2000 scope image; the
+        /// crosshair lines inside the lens stay solid. The image is copied (through a render texture, since the game's
+        /// texture is not readable) and its outside-the-lens pixels faded; one copy per 5% step.
+        private static readonly System.Collections.Generic.Dictionary<int, Sprite> ScopeCopies = new System.Collections.Generic.Dictionary<int, Sprite>();
+        private static Sprite _scopeOriginal;
+
+        private static void ScopeSprite(ItemBehaviour item)
         {
-            var img = Crosshair.Instance != null ? Crosshair.Instance.scopeImage : null;
-            if (img == null || Mathf.Approximately(img.color.a, a)) return;
-            var c = img.color;
-            c.a = a;
-            img.color = c;
+            if (Crosshair.Instance == null) return;
+            if (_scopeOriginal == null) _scopeOriginal = AimCrosshair(Visuals.StraftatPrefab("M2000")?.GetComponent<ItemBehaviour>());
+            if (_scopeOriginal == null) return;
+            int step = Mathf.RoundToInt(Mathf.Clamp01(Viewmodel.ScopeOpacity.Value) * 20f);
+            Sprite want = _scopeOriginal;
+            if (step < 20)
+            {
+                if (!ScopeCopies.TryGetValue(step, out want) || want == null)
+                {
+                    want = FadeScope(_scopeOriginal, step / 20f) ?? _scopeOriginal;
+                    ScopeCopies[step] = want;
+                }
+            }
+            if (Crosshair.Instance.aimCrosshair != want) Crosshair.Instance.aimCrosshair = want;
+            if (AimCrosshair(item) != want) AimCrosshair(item) = want;
+        }
+
+        private static Sprite FadeScope(Sprite src, float alpha)
+        {
+            try
+            {
+                var r = src.textureRect;
+                int w = Mathf.RoundToInt(r.width), h = Mathf.RoundToInt(r.height);
+                var rt = RenderTexture.GetTemporary(src.texture.width, src.texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                Graphics.Blit(src.texture, rt);
+                var prev = RenderTexture.active;
+                RenderTexture.active = rt;
+                var copy = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "TF2_ScopeFaded" };
+                copy.ReadPixels(new Rect(r.x, r.y, w, h), 0, 0);
+                RenderTexture.active = prev;
+                RenderTexture.ReleaseTemporary(rt);
+                var px = copy.GetPixels32();
+                float cx = w / 2f, cy = h / 2f;
+                // the lens edge: walk out along the diagonal (no crosshair line there) until the black starts
+                float radius = Mathf.Min(w, h) / 2f;
+                for (int i = 0; i < Mathf.Min(w, h) / 2; i++)
+                {
+                    int x = Mathf.RoundToInt(cx + i * 0.7071f), y = Mathf.RoundToInt(cy + i * 0.7071f);
+                    if (x >= w || y >= h) break;
+                    if (px[y * w + x].a > 128) { radius = i; break; }
+                }
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        float dx = x - cx, dy = y - cy;
+                        if (dx * dx + dy * dy <= (radius - 1f) * (radius - 1f)) continue;
+                        int k = y * w + x;
+                        px[k].a = (byte)(px[k].a * alpha);
+                    }
+                copy.SetPixels32(px);
+                copy.Apply(false);
+                return Sprite.Create(copy, new Rect(0, 0, w, h), new Vector2(src.pivot.x / src.rect.width, src.pivot.y / src.rect.height), src.pixelsPerUnit);
+            }
+            catch (System.Exception e)
+            {
+                Plugin.Log.LogWarning($"scope fade failed: {e.Message}");
+                return null;
+            }
         }
 
         // ------------------------------------------------------------------ sniper aim
