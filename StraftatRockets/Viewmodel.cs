@@ -11,7 +11,18 @@ namespace StraftatRockets
 {
     internal static class Viewmodel
     {
-        internal static ConfigEntry<float> Forward, Right, Up, Pitch, Yaw, Roll, Scale;
+        /// rules.viewmodel: each loadout weapon has its own placement (the launcher keeps the original keys)
+        internal sealed class Placement { public ConfigEntry<float> Forward, Right, Up, Pitch, Yaw, Roll, Scale; }
+        private static readonly Placement[] Places = new Placement[4];
+        private static Placement Active => Places[Arsenal.Slot] ?? Places[1];
+        internal static ConfigEntry<float> Forward => Active.Forward;
+        internal static ConfigEntry<float> Right => Active.Right;
+        internal static ConfigEntry<float> Up => Active.Up;
+        internal static ConfigEntry<float> Pitch => Active.Pitch;
+        internal static ConfigEntry<float> Yaw => Active.Yaw;
+        internal static ConfigEntry<float> Roll => Active.Roll;
+        internal static ConfigEntry<float> Scale => Active.Scale;
+        internal static ConfigEntry<string> Sniper;
         internal static ConfigEntry<bool> Hide;
         internal static ConfigEntry<KeyCode> PanelKey;
         // rules.cosmetics
@@ -21,15 +32,25 @@ namespace StraftatRockets
 
         internal static void Bind(ConfigFile cfg)
         {
-            ConfigEntry<float> F(string key, float def, float min, float max, string what) =>
-                cfg.Bind("Viewmodel", key, def, new ConfigDescription(what, new AcceptableValueRange<float>(min, max)));
-            Forward = F("Forward", 0f, -0.6f, 0.6f, "Move the launcher forward (+) or back (-), in weapon units");
-            Right = F("Right", 0f, -0.6f, 0.6f, "Move the launcher right (+) or left (-)");
-            Up = F("Up", 0f, -0.6f, 0.6f, "Move the launcher up (+) or down (-)");
-            Pitch = F("Pitch", 0f, -45f, 45f, "Tilt the muzzle up (-) or down (+), degrees");
-            Yaw = F("Yaw", 0f, -45f, 45f, "Turn the muzzle left (-) or right (+), degrees");
-            Roll = F("Roll", 0f, -45f, 45f, "Roll the launcher, degrees");
-            Scale = F("Scale", 1f, 0.5f, 1.5f, "Size of The Original");
+            Placement P(string section, string what)
+            {
+                ConfigEntry<float> F(string key, float def, float min, float max, string desc) =>
+                    cfg.Bind(section, key, def, new ConfigDescription(desc, new AcceptableValueRange<float>(min, max)));
+                return new Placement
+                {
+                    Forward = F("Forward", 0f, -0.6f, 0.6f, $"Move the {what} forward (+) or back (-), in weapon units"),
+                    Right = F("Right", 0f, -0.6f, 0.6f, $"Move the {what} right (+) or left (-)"),
+                    Up = F("Up", 0f, -0.6f, 0.6f, $"Move the {what} up (+) or down (-)"),
+                    Pitch = F("Pitch", 0f, -45f, 45f, $"Tilt the {what} up (-) or down (+), degrees"),
+                    Yaw = F("Yaw", 0f, -45f, 45f, $"Turn the {what} left (-) or right (+), degrees"),
+                    Roll = F("Roll", 0f, -45f, 45f, $"Roll the {what}, degrees"),
+                    Scale = F("Scale", 1f, 0.5f, 1.5f, $"Size of the {what}"),
+                };
+            }
+            Places[1] = P("Viewmodel", "launcher");
+            Places[2] = P("Viewmodel.Sniper", "sniper");
+            Places[3] = P("Viewmodel.MarketGardener", "Market Gardener");
+            Sniper = cfg.Bind("Look", "Sniper", "sniper_rifle", "Sniper model in Jump & Snipe: a TF2 rifle or a STRAFTAT gun (ids in sheets/models.json)");
             Hide = cfg.Bind("Viewmodel", "Hide", false, "Hide your own launcher (like TF2's r_drawviewmodel 0)");
             PanelKey = cfg.Bind("Viewmodel", "PanelKey", KeyCode.F8, "Key that opens the viewmodel panel");
             Model = cfg.Bind("Look", "Launcher", Visuals.DefaultLauncher, "TF2 launcher model in your hands (id from sheets/models.json / models/manifest.txt)");
@@ -65,6 +86,7 @@ namespace StraftatRockets
         {
             Model.Value = Visuals.DefaultLauncher;
             Projectile.Value = Visuals.DefaultProjectile;
+            Sniper.Value = "sniper_rifle";
             Sound.Value = "match";
             Unusual.Value = "none";
             UnusualStrength.Value = 1f;
@@ -128,15 +150,21 @@ namespace StraftatRockets
             if (m.Pivot != null)
                 m.Pivot.localPosition = mine ? m.PivotBase + new Vector3(Right.Value, Up.Value, Forward.Value) : m.PivotBase;
             // turned about the grip (the model's origin) in the weapon's own axes: x right, y up, z forward
-            m.transform.localRotation = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * SlotPose() * m.ModelBaseRotation : m.ModelBaseRotation;
+            var pose = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * SlotPose() : Quaternion.identity;
+            m.transform.localRotation = pose * m.ModelBaseRotation;
             m.transform.localScale = Vector3.one * (mine ? Scale.Value : 1f);
-            bool hidden = mine && (Hide.Value || Arsenal.Scoped); // TF2 hides the rifle while zoomed
-            if (m.Renderer != null) m.Renderer.enabled = !hidden;
+            bool hidden = mine && Hide.Value;
+            // rules.loadout: a STRAFTAT gun picked as the sniper is shown from the game's own weapon prefab
+            var model = mine ? Visuals.Get(Arsenal.ModelForSlot()) : null;
+            bool native = model != null && model.Kind == "straftat_sniper";
+            if (native) Visuals.ShowNative(m, model.Prefab, pose, Scale.Value, !hidden);
+            else Visuals.HideNative(m);
+            if (m.Renderer != null) m.Renderer.enabled = !hidden && !native;
             // rules.cosmetics + rules.loadout: your launcher shows the active slot's weapon in your colour and opacity;
             // everyone else's is The Original
-            if (mine) Visuals.SetLook(m, Arsenal.ModelForSlot(), Tint, Opacity.Value);
-            else Visuals.SetLook(m, Visuals.DefaultLauncher, Color.white, 1f);
-            Unusuals.Apply(m, mine ? Unusual.Value : "none", UnusualStrength.Value, !hidden);
+            if (mine && !native) Visuals.SetLook(m, Arsenal.ModelForSlot(), Tint, Opacity.Value);
+            else if (!mine) Visuals.SetLook(m, Visuals.DefaultLauncher, Color.white, 1f);
+            Unusuals.Apply(m, mine ? Unusual.Value : "none", UnusualStrength.Value, !hidden && !native);
         }
     }
 
@@ -162,7 +190,6 @@ namespace StraftatRockets
             if (Input.GetKeyDown(Viewmodel.PanelKey.Value)) SetOpen(!Open);
         }
 
-        private void LateUpdate() => Arsenal.LateTick();
 
         private void SetOpen(bool open)
         {
@@ -243,6 +270,7 @@ namespace StraftatRockets
             Picker("Launcher", Viewmodel.Model, Visuals.Launchers);
             Picker("Rocket", Viewmodel.Projectile, Visuals.Projectiles);
             SoundPicker();
+            Picker("Sniper", Viewmodel.Sniper, Visuals.Snipers);
             IdPicker("Unusual", Viewmodel.Unusual, Unusuals.Ids, Unusuals.NameOf(Viewmodel.Unusual.Value));
             Slider("Strength", Viewmodel.UnusualStrength, 0.25f, 3f, "0.00");
             Slider("Red", Viewmodel.TintR, 0f, 1f, "0.00");
@@ -256,7 +284,7 @@ namespace StraftatRockets
             if (GUILayout.Button("Dark")) Viewmodel.SetTint(new Color(0.35f, 0.35f, 0.38f));
             GUILayout.EndHorizontal();
             Slider("Opacity", Viewmodel.Opacity, 0.1f, 1f, "0.00");
-            GUILayout.Label("Move");
+            GUILayout.Label("Place: " + Arsenal.SlotName(Arsenal.Slot) + "  (switch weapons to place the others)");
             Slider("Forward", Viewmodel.Forward, -0.6f, 0.6f, "0.00");
             Slider("Right", Viewmodel.Right, -0.6f, 0.6f, "0.00");
             Slider("Up", Viewmodel.Up, -0.6f, 0.6f, "0.00");

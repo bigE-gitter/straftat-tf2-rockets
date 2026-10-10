@@ -26,13 +26,11 @@ namespace StraftatRockets
         private static GameMode _mode = GameMode.Rockets;
         private static float _nextModeCheck;
 
-        // sniper
-        internal static bool Scoped;
-        private static float _scopeStart;
-        private static float _rezoomAt;
-        internal static float ShotDamage;   // TF2 damage of the shot being fired (owner only)
-        internal static bool ShotCanCrit;   // scoped long enough for a headshot crit
+        // sniper: STRAFTAT's M2000 aim (right-click any time, its zoom, aim position and scope image), no charge
         internal static int PendingSlot = 1;
+        private static readonly AccessTools.FieldRef<ItemBehaviour, Sprite> AimCrosshair = AccessTools.FieldRefAccess<ItemBehaviour, Sprite>("aimCrosshair");
+        private static ItemBehaviour _aimItem;
+        private static bool _aimSniper;
 
         // melee
         private static float _swingStart = -10f;
@@ -56,7 +54,7 @@ namespace StraftatRockets
 
         internal static string SlotName(int s)
         {
-            if (s == 2) return "Sniper Rifle";
+            if (s == 2) { var sn = Visuals.Get(Viewmodel.Sniper.Value); return sn != null ? sn.Name : "Sniper Rifle"; }
             if (s == 3) return "Market Gardener";
             if (_mode == GameMode.JumpSnipe) return "Rocket Jumper";
             var m = Visuals.Get(Viewmodel.Model.Value);
@@ -66,7 +64,7 @@ namespace StraftatRockets
         /// The model your own held launcher shows for the active slot.
         internal static string ModelForSlot()
         {
-            if (Slot == 2) return "sniper_rifle";
+            if (Slot == 2) return Visuals.Get(Viewmodel.Sniper.Value) != null ? Viewmodel.Sniper.Value : "sniper_rifle";
             if (Slot == 3) return "market_gardener";
             return _mode == GameMode.JumpSnipe ? "rocket_jumper" : Viewmodel.Model.Value;
         }
@@ -74,7 +72,7 @@ namespace StraftatRockets
         /// The sound set for your own shots in the active slot.
         internal static SoundSet SoundsForSlot()
         {
-            if (Slot == 2) return Visuals.SoundFor("sniper_rifle", null);
+            if (Slot == 2) return Visuals.SoundFor(ModelForSlot(), null) ?? Visuals.SoundFor("sniper_rifle", null);
             if (Slot == 3) return Visuals.SoundFor("market_gardener", null);
             return _mode == GameMode.JumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value);
         }
@@ -128,7 +126,6 @@ namespace StraftatRockets
         {
             Slot = 1;
             DeployedAt = Time.time + Tf2.DeployTime;
-            Scoped = false;
             _swingHitDone = true;
         }
 
@@ -137,7 +134,6 @@ namespace StraftatRockets
             if (!HasSlot(s) || s == Slot) return;
             Slot = s;
             DeployedAt = Time.time + Tf2.DeployTime;
-            Scoped = false;
             _swingHitDone = true;
         }
 
@@ -158,7 +154,8 @@ namespace StraftatRockets
         {
             if (!__instance.IsOwner) return;
             RefreshMode();
-            if (!Holding(out _, out var weapon)) { Scoped = false; return; }
+            if (!Holding(out _, out var weapon)) return;
+            ApplyAim(weapon.GetComponent<ItemBehaviour>(), LocalPlayer.Controller);
             var pm = PauseManager.Instance;
             bool blocked = ViewmodelPanel.Open || (pm != null && (pm.pause || pm.chatting));
             if (!blocked)
@@ -179,25 +176,12 @@ namespace StraftatRockets
                 }
             }
 
-            // sniper scope (right mouse) and charge: TF2 charges 50 damage/s after a 0.3 s zoom delay, 50..150
-            bool wantScope = Slot == 2 && !blocked && Time.time >= DeployedAt && Input.GetMouseButton(1);
-            if (wantScope && !Scoped && Time.time >= _rezoomAt) { Scoped = true; _scopeStart = Time.time; }
-            if (!wantScope) Scoped = false;
-            weapon.movementFactor = Scoped ? Tf2.SniperScopedSpeed : 1f;
-
             // Market Gardener: the hit lands TF2's 0.2 s after the swing starts
             if (!_swingHitDone && Time.time >= _swingStart + Tf2.MeleeHitDelay)
             {
                 _swingHitDone = true;
                 MeleeHit(weapon);
             }
-        }
-
-        internal static float ChargeDamage()
-        {
-            if (!Scoped) return Tf2.SniperMinDamage;
-            float charge = Mathf.Clamp((Time.time - _scopeStart - Tf2.SniperZoomDelay) * Tf2.SniperChargeRate, 0f, Tf2.SniperMaxDamage);
-            return Mathf.Max(Tf2.SniperMinDamage, charge);
         }
 
         /// The swing's arc for the viewmodel: 0 = idle, 1 = fully swung through.
@@ -217,13 +201,11 @@ namespace StraftatRockets
             {
                 case 2:
                     launcher.timeBetweenFire = Tf2.SniperFireInterval;
-                    ShotDamage = ChargeDamage();
-                    ShotCanCrit = Scoped && Time.time - _scopeStart >= Tf2.SniperHeadshotDelay;
                     PendingSlot = 2;
-                    launcher.fireClip = Visuals.Pick(set?.Fire, launcher.fireClip);
-                    // TF2 drops out of the scope after a shot and zooms back in once the bolt is worked
-                    Scoped = false;
-                    _rezoomAt = Time.time + Tf2.SniperFireInterval;
+                    // a TF2 rifle's own shot sound, or the STRAFTAT gun's
+                    var native = Visuals.Get(ModelForSlot());
+                    var gunClip = native != null && native.Kind == "straftat_sniper" ? Visuals.StraftatPrefab(native.Prefab)?.GetComponent<Weapon>()?.fireClip : null;
+                    launcher.fireClip = gunClip != null ? gunClip : Visuals.Pick(set?.Fire, launcher.fireClip);
                     return true;
                 case 3:
                     if (Time.time >= _nextSwing) StartSwing(launcher);
@@ -339,25 +321,25 @@ namespace StraftatRockets
             if (Plugin.IsLauncher(__instance.gameObject)) Rockets.IncomingSlot = id & 3;
         }
 
-        // ------------------------------------------------------------------ scope view
-        private static float _fovBefore = -1f;
-
-        /// hooks.sniper_scope: TF2's 20-degree zoom while scoped, the viewmodel hidden (Viewmodel.Apply), back after.
-        internal static void LateTick()
+        // ------------------------------------------------------------------ sniper aim
+        /// hooks.sniper_aim: while the sniper is out, your launcher aims like STRAFTAT's M2000 (its aim position, zoom and
+        /// scope image); in the other slots it aims like STRAFTAT's own rocket launcher again.
+        private static void ApplyAim(ItemBehaviour item, FirstPersonController fpc)
         {
-            var me = LocalPlayer.Controller;
-            var cam = me != null ? me.playerCamera : null;
-            if (cam == null) return;
-            if (Scoped)
-            {
-                if (_fovBefore < 0f) _fovBefore = cam.fieldOfView;
-                cam.fieldOfView = Tf2.SniperZoomFov;
-            }
-            else if (_fovBefore > 0f)
-            {
-                cam.fieldOfView = _fovBefore;
-                _fovBefore = -1f;
-            }
+            if (item == null) return;
+            bool sniper = Slot == 2;
+            if (_aimItem == item && _aimSniper == sniper) return;
+            var src = Visuals.StraftatPrefab(sniper ? "M2000" : Plugin.LauncherName)?.GetComponent<ItemBehaviour>();
+            if (src == null) return;
+            item.aimWeapon = src.aimWeapon;
+            item.aimFOV = src.aimFOV;
+            item.aimIndex = src.aimIndex;
+            AimCrosshair(item) = AimCrosshair(src);
+            if (Crosshair.Instance != null) Crosshair.Instance.aimCrosshair = src.aimWeapon ? AimCrosshair(src) : null;
+            if (fpc != null && src.aimWeapon)
+                fpc.zoomFOV = src.aimFOV + ((Crosshair.Instance != null && !Crosshair.Instance.canScopeAim) ? fpc.defaultFOV - 68f : 0f);
+            _aimItem = item;
+            _aimSniper = sniper;
         }
 
         // ------------------------------------------------------------------ HUD
@@ -383,21 +365,6 @@ namespace StraftatRockets
                 GUI.Label(new Rect(x, y, w, 22f), $"{SlotName(s)}  {s}", s == Slot ? _active : _style);
                 y += 24f;
             }
-            if (!Scoped) return;
-            // scope: dark border, crosshair and TF2's charge meter
-            float size = Mathf.Min(Screen.width, Screen.height) * 0.9f;
-            float cx = Screen.width / 2f, cy = Screen.height / 2f;
-            var dark = new Color(0f, 0f, 0f, 0.85f);
-            Fill(new Rect(0, 0, cx - size / 2f, Screen.height), dark);
-            Fill(new Rect(cx + size / 2f, 0, Screen.width - (cx + size / 2f), Screen.height), dark);
-            Fill(new Rect(cx - size / 2f, 0, size, cy - size / 2f), dark);
-            Fill(new Rect(cx - size / 2f, cy + size / 2f, size, Screen.height - (cy + size / 2f)), dark);
-            Fill(new Rect(cx - size / 2f, cy - 1f, size, 2f), new Color(0f, 0f, 0f, 0.9f));
-            Fill(new Rect(cx - 1f, cy - size / 2f, 2f, size), new Color(0f, 0f, 0f, 0.9f));
-            float charge = (ChargeDamage() - Tf2.SniperMinDamage) / (Tf2.SniperMaxDamage - Tf2.SniperMinDamage);
-            var bar = new Rect(cx + 60f, cy + 40f, 160f, 10f);
-            Fill(bar, new Color(0f, 0f, 0f, 0.6f));
-            Fill(new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(charge), bar.height), charge >= 1f ? new Color(1f, 0.85f, 0.3f) : new Color(1f, 1f, 1f, 0.9f));
         }
 
         private static void Fill(Rect r, Color c)

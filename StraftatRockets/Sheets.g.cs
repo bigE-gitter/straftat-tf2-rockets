@@ -111,5 +111,7 @@ namespace StraftatRockets
         public const float SlideWallScale = 0.451f; // x
         /// <summary>A jump pressed this long before landing from a rocket jump still hops on landing (user, play-test 5: could not chain rocket jumps right after landing)</summary>
         public const float JumpBufferTime = 0.2f; // s
+        /// <summary>Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up)</summary>
+        public const float SniperBodyDamage = 5.0f; // STRAFTAT health (of 10)
     }
 }

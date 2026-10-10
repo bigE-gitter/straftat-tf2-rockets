@@ -4,7 +4,7 @@
   "columns": {
     "id": "config value and file name",
     "name": "shown in the F8 panel",
-    "kind": "launcher | projectile | weapon (loadout slot model) | sound (sound set only)",
+    "kind": "launcher | projectile | sniper (TF2 rifle for slot 2) | straftat_sniper (a STRAFTAT gun shown from the game's own prefab) | weapon (other slot models) | sound (sound set only)",
     "mdl": "path inside TF2's VPKs",
     "item_def": "items_game item id (launchers)",
     "verified_offline": "exported and rendered offline",
@@ -13,7 +13,8 @@
     "fire_sound": "TF2 soundscript entry for a shot (items_game visuals sound_single_shot; stock weapons: their weapon script's single_shot)",
     "explode_sound": "TF2 soundscript entry for the blast (items_game sound_special1 when it is an explosion, else TF2's BaseExplosionEffect.Sound)",
     "fire_waves": "the files behind fire_sound in TF2's VPKs (resolved from game_sounds_weapons.txt by the sheet tool; TF2 picks one at random)",
-    "explode_waves": "the files behind explode_sound"
+    "explode_waves": "the files behind explode_sound",
+    "prefab": "straftat_sniper only: the STRAFTAT weapon prefab (Resources/RandomWeapons) whose meshes, materials and shot sound are shown"
   },
   "rows": [
     {
@@ -281,7 +282,7 @@
     {
       "id": "sniper_rifle",
       "name": "Sniper Rifle",
-      "kind": "weapon",
+      "kind": "sniper",
       "mdl": "models/weapons/c_models/c_sniperrifle/c_sniperrifle.mdl",
       "item_def": 14,
       "fire_sound": "Weapon_SniperRifle.Single",
@@ -368,6 +369,142 @@
         "sound/weapons/cbar_hit2.wav"
       ],
       "explode_waves": []
+    },
+    {
+      "id": "awper_hand",
+      "name": "The AWPer Hand",
+      "kind": "sniper",
+      "mdl": "models/weapons/c_models/c_csgo_awp/c_csgo_awp.mdl",
+      "item_def": 851,
+      "extra": [],
+      "fire_sound": "Weapon_AWP.Single",
+      "explode_sound": "",
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/csgo_awp_shoot.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "machina",
+      "name": "The Machina",
+      "kind": "sniper",
+      "mdl": "models/workshop_partner/weapons/c_models/c_dex_sniperrifle/c_dex_sniperrifle.mdl",
+      "item_def": 526,
+      "extra": [],
+      "fire_sound": "Weapon_SniperRailgun_Large.Single",
+      "explode_sound": "",
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/sniper_railgun_charged_shot_01.wav",
+        "sound/weapons/sniper_railgun_charged_shot_02.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "shooting_star",
+      "name": "Shooting Star",
+      "kind": "sniper",
+      "mdl": "models/workshop/weapons/c_models/c_invasion_sniperrifle/c_invasion_sniperrifle.mdl",
+      "item_def": 30665,
+      "extra": [],
+      "fire_sound": "Weapon_ShootingStar.SingleCharged",
+      "explode_sound": "",
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/shooting_star_shoot_charged.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "hitmans_heatmaker",
+      "name": "The Hitman's Heatmaker",
+      "kind": "sniper",
+      "mdl": "models/workshop/weapons/c_models/c_pro_rifle/c_pro_rifle.mdl",
+      "item_def": 752,
+      "extra": [],
+      "fire_sound": "Weapon_ProSniperRifle.Single",
+      "explode_sound": "",
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/doom_sniper_rifle.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "classic",
+      "name": "The Classic",
+      "kind": "sniper",
+      "mdl": "models/weapons/c_models/c_tfc_sniperrifle/c_tfc_sniperrifle.mdl",
+      "item_def": 1098,
+      "extra": [],
+      "fire_sound": "Weapon_ClassicSniperRifle.Single",
+      "explode_sound": "",
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/weapons/sniper_rifle_classic_shoot.wav"
+      ],
+      "explode_waves": []
+    },
+    {
+      "id": "straftat_m2000",
+      "name": "M2000 (STRAFTAT)",
+      "kind": "straftat_sniper",
+      "mdl": "",
+      "prefab": "M2000",
+      "item_def": null,
+      "extra": [],
+      "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/m2000); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
+    },
+    {
+      "id": "straftat_smithcarbine",
+      "name": "Smith Carbine (STRAFTAT)",
+      "kind": "straftat_sniper",
+      "mdl": "",
+      "prefab": "SmithCarbine",
+      "item_def": null,
+      "extra": [],
+      "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/smithcarbine); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
+    },
+    {
+      "id": "straftat_blister",
+      "name": "Blister (STRAFTAT)",
+      "kind": "straftat_sniper",
+      "mdl": "",
+      "prefab": "DF_Blister",
+      "item_def": null,
+      "extra": [],
+      "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/df_blister); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
+    },
+    {
+      "id": "straftat_torrent",
+      "name": "Torrent (STRAFTAT)",
+      "kind": "straftat_sniper",
+      "mdl": "",
+      "prefab": "DF_Torrent",
+      "item_def": null,
+      "extra": [],
+      "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/df_torrent); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
+    },
+    {
+      "id": "straftat_elephant",
+      "name": "Elephant (STRAFTAT)",
+      "kind": "straftat_sniper",
+      "mdl": "",
+      "prefab": "Elephant",
+      "item_def": null,
+      "extra": [],
+      "verified_offline": "prefab found in STRAFTAT's resources (randomweapons/elephant); right Grip at the RocketLauncher's grip",
+      "verified_in_game": false
     }
   ]
 }

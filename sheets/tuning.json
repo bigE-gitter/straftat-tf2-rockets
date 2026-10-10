@@ -36,6 +36,13 @@
       "unit": "s",
       "why": "A jump pressed this long before landing from a rocket jump still hops on landing (user, play-test 5: could not chain rocket jumps right after landing)",
       "verified_in_game": false
+    },
+    {
+      "id": "SniperBodyDamage",
+      "value": 5.0,
+      "unit": "STRAFTAT health (of 10)",
+      "why": "Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up)",
+      "verified_in_game": false
     }
   ]
 }

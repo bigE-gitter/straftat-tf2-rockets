@@ -88,7 +88,8 @@ namespace StraftatRockets
             {
                 try
                 {
-                    var model = new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind };
+                    if (row.Kind == "straftat_sniper") continue; // shown from STRAFTAT's own prefab (Visuals.Load)
+                    var model = new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind, Prefab = row.Prefab };
                     if (!string.IsNullOrEmpty(row.Mdl))
                     {
                         var parts = new List<StudioMesh>();

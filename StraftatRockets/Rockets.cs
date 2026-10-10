@@ -84,7 +84,6 @@ namespace StraftatRockets
                 {
                     FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position,
                     Shooter = rootObject, Slot = 2,
-                    SniperDamage = mine0 ? Arsenal.ShotDamage : 0f, SniperCanCrit = mine0 && Arsenal.ShotCanCrit,
                 };
                 return;
             }
@@ -277,14 +276,14 @@ namespace StraftatRockets
         {
             if (info.Slot == 2)
             {
-                // rules.sniper_rifle: direct hit only, scoped headshots crit (x3), no splash and no push
+                // rules.sniper_rifle: direct hit only; a body shot takes half a player's health, a headshot kills; no push
                 if (!rocket.isOwner || info.HitCollider == null) return;
                 var victim = info.HitCollider.GetComponentInParent<PlayerHealth>();
                 if (victim == null || victim.gameObject == info.Shooter) return;
                 bool head = info.HitCollider.name == "Head_Col" || info.HitCollider.name == "Neck_1_Col";
-                float tf2 = info.SniperDamage * (head && info.SniperCanCrit ? Tf2.CritMultiplier : 1f);
-                Plugin.Log.LogInfo($"sniper hit {victim.gameObject.name}: {(head ? "head" : "body")}, {tf2:0} TF2 damage");
-                ApplyDamage(victim, tf2 * Tf2.HealthPerTf2Hp, info.Shooter, blast, rocket.transform.forward, "Sniper Rifle", head && info.SniperCanCrit ? "headshot" : "killed", null);
+                float dmg = head ? float.PositiveInfinity : Tuning.SniperBodyDamage;
+                Plugin.Log.LogInfo($"sniper hit {victim.gameObject.name}: {(head ? "headshot" : "body")}");
+                ApplyDamage(victim, dmg, info.Shooter, blast, rocket.transform.forward, Arsenal.SlotName(2), head ? "headshot" : "killed", null);
                 return;
             }
             // damage: only on the shooter's client, never to the shooter; the Rocket Jumper's rockets never damage

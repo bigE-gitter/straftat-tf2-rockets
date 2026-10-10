@@ -28,7 +28,7 @@ namespace StraftatRockets
     /// One row of sheets/models.json as loaded in game.
     internal class TF2Model
     {
-        public string Id, Name, Kind;
+        public string Id, Name, Kind, Prefab;
         public Mesh Mesh;            // null for the ones the plugin draws itself (energy ball, STRAFTAT rocket)
         public Texture2D[] Textures; // one per submesh
     }
@@ -46,6 +46,8 @@ namespace StraftatRockets
         internal Material[] Owned;           // material instances made for this launcher
         internal string UnusualId;           // rules.cosmetics: unusual effect currently on it
         internal GameObject Unusual;
+        internal string NativeName;          // rules.loadout: STRAFTAT gun shown instead (sniper slot)
+        internal GameObject Native;
     }
 
     internal class ProjectileMarker : MonoBehaviour { }
@@ -64,6 +66,7 @@ namespace StraftatRockets
         internal const string DefaultProjectile = "w_rocket";
         internal static readonly List<TF2Model> Launchers = new List<TF2Model>();
         internal static readonly List<TF2Model> Projectiles = new List<TF2Model>();
+        internal static readonly List<TF2Model> Snipers = new List<TF2Model>();
         private static readonly Dictionary<string, TF2Model> ById = new Dictionary<string, TF2Model>();
         internal static readonly Dictionary<string, SoundSet> Sounds = new Dictionary<string, SoundSet>();
         private static readonly Dictionary<Texture2D, Texture2D> OpaqueCopies = new Dictionary<Texture2D, Texture2D>();
@@ -97,6 +100,9 @@ namespace StraftatRockets
                 catch (Exception e) { Plugin.Log.LogWarning($"reading TF2 at {tf} failed: {e}"); }
             }
             else Plugin.Log.LogWarning("Team Fortress 2 was not found through Steam (set Paths.TF2Folder in the config to its 'tf' folder)");
+            // STRAFTAT's own guns need nothing from TF2
+            foreach (var row in ModelSheet.Rows)
+                if (row.Kind == "straftat_sniper") Add(new TF2Model { Id = row.Id, Name = row.Name, Kind = row.Kind, Prefab = row.Prefab });
             if (Get(DefaultLauncher) == null) LoadExported(pluginDir);
             if (Get(DefaultLauncher) == null)
             {
@@ -118,7 +124,78 @@ namespace StraftatRockets
             if (ById.ContainsKey(m.Id)) return;
             if (m.Kind == "launcher") Launchers.Add(m);
             else if (m.Kind == "projectile") Projectiles.Add(m);
+            else if (m.Kind == "sniper" || m.Kind == "straftat_sniper") Snipers.Add(m);
             ById[m.Id] = m; // weapons (sniper, Market Gardener) and sound-only rows are looked up by id
+        }
+
+        internal static GameObject StraftatPrefab(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            SpawnerManager.PopulateAllWeapons();
+            return SpawnerManager.NameToWeaponDict.TryGetValue(name, out var p) ? p : null;
+        }
+
+        /// A STRAFTAT gun shown in place of your launcher: copies of its prefab's meshes and materials, placed so its
+        /// right grip sits on your launcher's grip (every STRAFTAT gun's grip is at the same spot in the weapon).
+        internal static void ShowNative(OriginalMarker m, string prefabName, Quaternion pose, float scale, bool visible)
+        {
+            if (m.NativeName != prefabName)
+            {
+                if (m.Native != null) Object.Destroy(m.Native);
+                m.Native = BuildNative(m, prefabName);
+                m.NativeName = prefabName;
+            }
+            if (m.Native == null) return;
+            if (m.Native.activeSelf != visible) m.Native.SetActive(visible);
+            m.Native.transform.localPosition = m.transform.localPosition;
+            m.Native.transform.localRotation = pose;
+            m.Native.transform.localScale = Vector3.one * scale;
+        }
+
+        internal static void HideNative(OriginalMarker m)
+        {
+            if (m.Native != null && m.Native.activeSelf) m.Native.SetActive(false);
+        }
+
+        private static GameObject BuildNative(OriginalMarker m, string prefabName)
+        {
+            var prefab = StraftatPrefab(prefabName);
+            if (prefab == null) { Plugin.Log.LogWarning($"STRAFTAT weapon {prefabName} not found"); return null; }
+            var grips = prefab.GetComponentsInChildren<Grip>(true);
+            var gripInRoot = grips.Length > 0 ? prefab.transform.InverseTransformPoint(grips[0].transform.position) : Vector3.zero;
+            var wrapper = new GameObject("TF2_Native_" + prefabName) { layer = m.gameObject.layer };
+            wrapper.transform.SetParent(m.transform.parent, false);
+            var weaponRoot = new GameObject("root") { layer = wrapper.layer };
+            weaponRoot.transform.SetParent(wrapper.transform, false);
+            weaponRoot.transform.localPosition = -gripInRoot;
+            int n = 0;
+            foreach (var r in prefab.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (!r.enabled || !ActiveInPrefab(r.transform, prefab.transform)) continue;
+                var mf = r.GetComponent<MeshFilter>();
+                if (mf == null || mf.sharedMesh == null) continue;
+                var c = new GameObject(r.name) { layer = wrapper.layer };
+                c.transform.SetParent(weaponRoot.transform, false);
+                var mtx = prefab.transform.worldToLocalMatrix * r.transform.localToWorldMatrix;
+                c.transform.localPosition = mtx.GetColumn(3);
+                c.transform.localRotation = mtx.rotation;
+                c.transform.localScale = mtx.lossyScale;
+                c.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+                c.AddComponent<MeshRenderer>().sharedMaterials = r.sharedMaterials;
+                n++;
+            }
+            Plugin.Log.LogInfo($"showing STRAFTAT's {prefabName} as your sniper ({n} meshes)");
+            return wrapper;
+        }
+
+        private static bool ActiveInPrefab(Transform t, Transform root)
+        {
+            for (; t != null; t = t.parent)
+            {
+                if (!t.gameObject.activeSelf) return false;
+                if (t == root) return true;
+            }
+            return true;
         }
 
         private static GameObject _empty;
