@@ -56,7 +56,6 @@ namespace StraftatRockets
         {
             if (s == 2) { var sn = Visuals.Get(Viewmodel.Sniper.Value); return sn != null ? sn.Name : "Sniper Rifle"; }
             if (s == 3) return "Market Gardener";
-            if (_mode == GameMode.JumpSnipe) return "Rocket Jumper";
             var m = Visuals.Get(Viewmodel.Model.Value);
             return m != null ? m.Name : "Rocket Launcher";
         }
@@ -66,7 +65,7 @@ namespace StraftatRockets
         {
             if (Slot == 2) return Visuals.Get(Viewmodel.Sniper.Value) != null ? Viewmodel.Sniper.Value : "sniper_rifle";
             if (Slot == 3) return "market_gardener";
-            return _mode == GameMode.JumpSnipe ? "rocket_jumper" : Viewmodel.Model.Value;
+            return Viewmodel.Model.Value; // your F8 launcher pick in both modes
         }
 
         /// The sound set for your own shots in the active slot.
@@ -74,7 +73,7 @@ namespace StraftatRockets
         {
             if (Slot == 2) return Visuals.SoundFor(ModelForSlot(), null) ?? Visuals.SoundFor("sniper_rifle", null);
             if (Slot == 3) return Visuals.SoundFor("market_gardener", null);
-            return _mode == GameMode.JumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value);
+            return Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value);
         }
 
         // ------------------------------------------------------------------ mode: host -> Steam lobby data -> everyone
@@ -154,8 +153,9 @@ namespace StraftatRockets
         {
             if (!__instance.IsOwner) return;
             RefreshMode();
-            if (!Holding(out _, out var weapon)) return;
+            if (!Holding(out _, out var weapon)) { ScopeAlpha(1f); return; }
             ApplyAim(weapon.GetComponent<ItemBehaviour>(), LocalPlayer.Controller);
+            ScopeAlpha(Slot == 2 ? Viewmodel.ScopeOpacity.Value : 1f);
             var pm = PauseManager.Instance;
             bool blocked = ViewmodelPanel.Open || (pm != null && (pm.pause || pm.chatting));
             if (!blocked)
@@ -319,6 +319,16 @@ namespace StraftatRockets
         private static void DecodeSlot(DualLauncher __instance, int id)
         {
             if (Plugin.IsLauncher(__instance.gameObject)) Rockets.IncomingSlot = id & 3;
+        }
+
+        /// rules.sniper_rifle: how see-through STRAFTAT's scope image (black surround and lines) is, from the F8 slider
+        private static void ScopeAlpha(float a)
+        {
+            var img = Crosshair.Instance != null ? Crosshair.Instance.scopeImage : null;
+            if (img == null || Mathf.Approximately(img.color.a, a)) return;
+            var c = img.color;
+            c.a = a;
+            img.color = c;
         }
 
         // ------------------------------------------------------------------ sniper aim

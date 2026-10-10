@@ -66,7 +66,7 @@ namespace StraftatRockets
             // other players' shots: STRAFTAT played their launcher's (silent) shot sound; play the right one here
             if (!mine0)
             {
-                var their = slot == 2 ? Visuals.SoundFor("sniper_rifle", null) : jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : null;
+                var their = slot == 2 ? Visuals.SoundFor("sniper_rifle", null) : null;
                 var shot = Visuals.Pick(their?.Fire, Visuals.FireClip);
                 var gunAudio = gun.GetComponent<Weapon>()?.audio;
                 if (shot != null && gunAudio != null) gunAudio.PlayOneShot(shot);
@@ -87,8 +87,7 @@ namespace StraftatRockets
                 };
                 return;
             }
-            var mySet = mine0 ? (jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value))
-                              : (jumpSnipe ? Visuals.SoundFor("rocket_jumper", null) : null);
+            var mySet = mine0 ? Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value) : null;
             var blast = Visuals.Pick(mySet?.Explode, Visuals.ExplodeClip);
             if (src != null && blast != null)
             {

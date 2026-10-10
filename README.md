@@ -3,7 +3,13 @@
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **STRAFTAT** that turns every round into a Team Fortress 2
 rocket-jumping arena:
 
-- Everyone spawns with a rocket launcher and nothing else: no weapon pickups, infinite ammo, no self-damage.
+- Two game modes, picked by the host in the F8 panel:
+  - **Rockets**: 1 rocket launcher (TF2 damage), 3 Market Gardener.
+  - **Jump & Snipe**: 1 Rocket Jumper (rockets launch you but never hurt anyone), 2 sniper (STRAFTAT's M2000 scope,
+    two body shots or one headshot), 3 Market Gardener.
+  Switch weapons with 1/2/3 or the scroll wheel. The Market Gardener (left-click) crits for a one-hit kill while you
+  are rocket jumping, like in TF2.
+- No weapon pickups, infinite ammo, no self-damage.
 - Rockets follow TF2's numbers: 1100 u/s, 0.8 s between shots, 146-unit blast, 90 base damage with TF2's
   ramp-up/fall-off and splash.
 - Blasts push you with TF2's knockback formula (air and ground scales, the crouch bonus, the 1000 u/s cap), so
@@ -13,8 +19,8 @@ rocket-jumping arena:
 - STRAFTAT's maps, rounds, lobbies, wall jumps and slides stay; movement speeds are brought into TF2's range so rocket
   PvP stays playable.
 - Your launcher shows **The Original**, with its sounds. Press **F8** in game to pick any TF2 rocket launcher model,
-  the rocket model your shots fly as, the sounds, a colour, opacity, an unusual-style effect, and to move/turn/scale
-  your viewmodel.
+  the rocket model your shots fly as, the sounds, your sniper (six TF2 rifles or five STRAFTAT guns), the scope's
+  opacity, a colour, opacity, an unusual-style effect, and to move/turn/scale each weapon in your view.
 
 No files from STRAFTAT or Team Fortress 2 are in this repository or its releases. The TF2 models, textures and sounds
 are read from **your own TF2 install** each time the game starts.

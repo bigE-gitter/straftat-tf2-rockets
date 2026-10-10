@@ -23,6 +23,7 @@ namespace StraftatRockets
         internal static ConfigEntry<float> Roll => Active.Roll;
         internal static ConfigEntry<float> Scale => Active.Scale;
         internal static ConfigEntry<string> Sniper;
+        internal static ConfigEntry<float> ScopeOpacity;
         internal static ConfigEntry<bool> Hide;
         internal static ConfigEntry<KeyCode> PanelKey;
         // rules.cosmetics
@@ -50,6 +51,7 @@ namespace StraftatRockets
             Places[1] = P("Viewmodel", "launcher");
             Places[2] = P("Viewmodel.Sniper", "sniper");
             Places[3] = P("Viewmodel.MarketGardener", "Market Gardener");
+            ScopeOpacity = cfg.Bind("Look", "ScopeOpacity", 1f, new ConfigDescription("How solid the sniper scope's black surround and lines are (1 = STRAFTAT's normal scope)", new AcceptableValueRange<float>(0f, 1f)));
             Sniper = cfg.Bind("Look", "Sniper", "sniper_rifle", "Sniper model in Jump & Snipe: a TF2 rifle or a STRAFTAT gun (ids in sheets/models.json)");
             Hide = cfg.Bind("Viewmodel", "Hide", false, "Hide your own launcher (like TF2's r_drawviewmodel 0)");
             PanelKey = cfg.Bind("Viewmodel", "PanelKey", KeyCode.F8, "Key that opens the viewmodel panel");
@@ -87,6 +89,7 @@ namespace StraftatRockets
             Model.Value = Visuals.DefaultLauncher;
             Projectile.Value = Visuals.DefaultProjectile;
             Sniper.Value = "sniper_rifle";
+            ScopeOpacity.Value = 1f;
             Sound.Value = "match";
             Unusual.Value = "none";
             UnusualStrength.Value = 1f;
@@ -271,6 +274,7 @@ namespace StraftatRockets
             Picker("Rocket", Viewmodel.Projectile, Visuals.Projectiles);
             SoundPicker();
             Picker("Sniper", Viewmodel.Sniper, Visuals.Snipers);
+            Slider("Scope", Viewmodel.ScopeOpacity, 0f, 1f, "0.00");
             IdPicker("Unusual", Viewmodel.Unusual, Unusuals.Ids, Unusuals.NameOf(Viewmodel.Unusual.Value));
             Slider("Strength", Viewmodel.UnusualStrength, 0.25f, 3f, "0.00");
             Slider("Red", Viewmodel.TintR, 0f, 1f, "0.00");
