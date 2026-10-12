@@ -127,8 +127,8 @@ namespace StraftatRockets
         public const float KillCamOrbitDistance = 3.2f; // m
         /// <summary>Camera distance from the killer's face in the freeze frame</summary>
         public const float KillCamKillerDistance = 1.9f; // m
-        /// <summary>How much of the lead-up the final kill cam replays (user, 2026-10-12: a 4 second replay before the kill, to see the rocket jump)</summary>
-        public const float KillCamReplayTime = 4.0f; // s (recorded)
+        /// <summary>How much of the lead-up the final kill cam replays (user, 2026-10-12: replay the lead-up to see the rocket jump; set to the last 3 seconds after trying 4)</summary>
+        public const float KillCamReplayTime = 3.0f; // s (recorded)
         /// <summary>The last part of the replay before the kill plays slowed down</summary>
         public const float KillCamReplaySlowTime = 0.8f; // s (recorded)
         /// <summary>Replay speed in that last part</summary>
