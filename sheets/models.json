@@ -1245,6 +1245,24 @@
       "extra": [],
       "verified_offline": "listed from items_game.txt",
       "verified_in_game": false
+    },
+    {
+      "id": "final_kill",
+      "name": "Final kill freeze cam",
+      "kind": "sound",
+      "mdl": "",
+      "item_def": null,
+      "fire_sound": "TFPlayer.FreezeCam",
+      "explode_sound": "Camera.SnapShot",
+      "extra": [],
+      "verified_offline": false,
+      "verified_in_game": false,
+      "fire_waves": [
+        "sound/misc/freeze_cam.wav"
+      ],
+      "explode_waves": [
+        "sound/misc/freeze_cam_snapshot.wav"
+      ]
     }
   ]
 }

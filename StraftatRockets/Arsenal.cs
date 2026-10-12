@@ -416,7 +416,7 @@ namespace StraftatRockets
 
         internal static void DrawHud()
         {
-            if (!Holding(out _, out _)) return;
+            if (FinalKillCam.Running || !Holding(out _, out _)) return;
             var pm = PauseManager.Instance;
             if (pm != null && (pm.inMainMenu || pm.inVictoryMenu)) return;
             if (_style == null)

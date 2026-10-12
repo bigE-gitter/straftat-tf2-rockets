@@ -190,6 +190,24 @@
       "does": "A null rootObject (launcher with no known holder) becomes the player whose synced objInHand is the gun, else the gun itself, so Initialize does not throw and the rocket still bursts",
       "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.2.1)",
       "verified_in_game": false
+    },
+    {
+      "id": "final_kill_cam",
+      "target": "PlayerHealth.RpcLogic___ExplodeForAll",
+      "kind": "prefix+postfix",
+      "runs_on": "every client",
+      "does": "When a death's ragdoll spawns and it leaves one team alive whose take score + 1 reaches ScoreManager.RoundScoreRequiredToWin, start the final kill cam (FinalKillCam.cs)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.4.0)",
+      "verified_in_game": false
+    },
+    {
+      "id": "final_kill_end_round_wait",
+      "target": "RoundManager.RpcLogic___EndRoundObservers",
+      "kind": "prefix",
+      "runs_on": "every client",
+      "does": "If the end-of-round screen arrives while the final kill cam is still playing, it is shown when the cam ends",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.4.0)",
+      "verified_in_game": false
     }
   ]
 }

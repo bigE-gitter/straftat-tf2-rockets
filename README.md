@@ -9,6 +9,9 @@ rocket-jumping arena:
     two body shots or one headshot), 3 Market Gardener.
   Switch weapons with 1/2/3 or the scroll wheel. The Market Gardener (left-click) crits for a one-hit kill while you
   are rocket jumping, like in TF2.
+- **Final kill cam**: the kill that wins a set plays a TF2 freeze-cam style shot for everyone: slow motion around the
+  falling ragdoll, a fly-in to the winner with TF2's freeze cam sound, a freeze frame with the snapshot sound and a
+  FINAL BLOW banner. Turn it off or preview it solo in the F8 panel.
 - No weapon pickups, infinite ammo, no self-damage.
 - Rockets follow TF2's numbers: 1100 u/s, 0.8 s between shots, 146-unit blast, 90 base damage with TF2's
   ramp-up/fall-off and splash.

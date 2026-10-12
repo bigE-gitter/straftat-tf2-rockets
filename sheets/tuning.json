@@ -43,6 +43,55 @@
       "unit": "STRAFTAT health (of 10)",
       "why": "Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up)",
       "verified_in_game": false
+    },
+    {
+      "id": "KillCamSlowMo",
+      "value": 0.2,
+      "unit": "x",
+      "why": "Time scale while the camera swoops around the falling ragdoll. Final kill cam (user, 2026-10-12: the player who wins the set gets a cool kill cam)",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamFreeze",
+      "value": 0.02,
+      "unit": "x",
+      "why": "Time scale in the freeze frame (not 0, so nothing in STRAFTAT divides by a zero frame time)",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamSwoopTime",
+      "value": 1.5,
+      "unit": "s (real time)",
+      "why": "Slow-motion orbit around the victim's ragdoll",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamZoomTime",
+      "value": 0.45,
+      "unit": "s (real time)",
+      "why": "Fly from the orbit to the killer, like TF2's freeze cam",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamHoldTime",
+      "value": 2.0,
+      "unit": "s (real time)",
+      "why": "Freeze frame with the snapshot sound and the FINAL BLOW banner",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamOrbitDistance",
+      "value": 3.2,
+      "unit": "m",
+      "why": "Camera distance from the ragdoll during the swoop (pulled in by walls)",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamKillerDistance",
+      "value": 1.9,
+      "unit": "m",
+      "why": "Camera distance from the killer's face in the freeze frame",
+      "verified_in_game": false
     }
   ]
 }

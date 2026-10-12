@@ -115,6 +115,7 @@ namespace StraftatRockets
             new Row { Id = "melee_c_xms_giftwrap", Name = "Wrap Assassin", Kind = "melee", Mdl = "models/workshop/weapons/c_models/c_xms_giftwrap/c_xms_giftwrap.mdl", Prefab = "", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
             new Row { Id = "melee_c_wrench", Name = "Wrench", Kind = "melee", Mdl = "models/weapons/c_models/c_wrench/c_wrench.mdl", Prefab = "", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
             new Row { Id = "melee_c_eternal_reward", Name = "Your Eternal Reward", Kind = "melee", Mdl = "models/workshop/weapons/c_models/c_eternal_reward/c_eternal_reward.mdl", Prefab = "", Extra = new string[0], FireWaves = new string[0], ExplodeWaves = new string[0] },
+            new Row { Id = "final_kill", Name = "Final kill freeze cam", Kind = "sound", Mdl = "", Prefab = "", Extra = new string[0], FireWaves = new string[] { "sound/misc/freeze_cam.wav" }, ExplodeWaves = new string[] { "sound/misc/freeze_cam_snapshot.wav" } },
         };
     }
 }

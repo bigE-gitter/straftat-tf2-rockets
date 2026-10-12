@@ -113,5 +113,19 @@ namespace StraftatRockets
         public const float JumpBufferTime = 0.2f; // s
         /// <summary>Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up)</summary>
         public const float SniperBodyDamage = 5.0f; // STRAFTAT health (of 10)
+        /// <summary>Time scale while the camera swoops around the falling ragdoll. Final kill cam (user, 2026-10-12: the player who wins the set gets a cool kill cam)</summary>
+        public const float KillCamSlowMo = 0.2f; // x
+        /// <summary>Time scale in the freeze frame (not 0, so nothing in STRAFTAT divides by a zero frame time)</summary>
+        public const float KillCamFreeze = 0.02f; // x
+        /// <summary>Slow-motion orbit around the victim's ragdoll</summary>
+        public const float KillCamSwoopTime = 1.5f; // s (real time)
+        /// <summary>Fly from the orbit to the killer, like TF2's freeze cam</summary>
+        public const float KillCamZoomTime = 0.45f; // s (real time)
+        /// <summary>Freeze frame with the snapshot sound and the FINAL BLOW banner</summary>
+        public const float KillCamHoldTime = 2.0f; // s (real time)
+        /// <summary>Camera distance from the ragdoll during the swoop (pulled in by walls)</summary>
+        public const float KillCamOrbitDistance = 3.2f; // m
+        /// <summary>Camera distance from the killer's face in the freeze frame</summary>
+        public const float KillCamKillerDistance = 1.9f; // m
     }
 }

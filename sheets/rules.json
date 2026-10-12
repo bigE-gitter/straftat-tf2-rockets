@@ -157,6 +157,16 @@
       ],
       "verified_offline": "models exported and rendered offline",
       "verified_in_game": false
+    },
+    {
+      "id": "final_kill_cam",
+      "description": "The kill that wins a set (the take that brings a team to STRAFTAT's RoundScoreRequiredToWin) plays a TF2 freeze-cam style shot on every player's screen: slow motion (tuning.KillCamSlowMo) while the camera swoops around the victim's ragdoll, a fly-in to the killer with TF2's freeze cam sound, a near-freeze (tuning.KillCamFreeze) with TF2's snapshot sound, a white flash and a FINAL BLOW banner, then STRAFTAT's end-of-round screen. Each player can turn it off in the F8 panel. Time scale changes are local; FishNet ticks run on unscaled time, and on the host the slow motion also delays the round-end timers, so the end screen follows the cam",
+      "hooks": [
+        "final_kill_cam",
+        "final_kill_end_round_wait"
+      ],
+      "verified_offline": "GameManager.WaitForDraw/RoundWon, SceneMotor.ChangeNetworkScene, PlayerHealth.ExplodeForAll and FishNet TimeManager (unscaledDeltaTime ticks) read",
+      "verified_in_game": false
     }
   ]
 }
