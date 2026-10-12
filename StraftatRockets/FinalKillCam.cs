@@ -75,7 +75,12 @@ namespace StraftatRockets
             _instance = go.AddComponent<FinalKillCam>();
         }
 
-        private void Awake() => SceneManager.activeSceneChanged += (from, to) => { _pendingEndRound = null; if (_running) Stop(); };
+        private void Awake()
+        {
+            useGUILayout = false; // plain GUI only
+            enabled = false;      // no Update/OnGUI calls until a cam plays
+            SceneManager.activeSceneChanged += (from, to) => { _pendingEndRound = null; if (_running) Stop(); };
+        }
 
         private void OnApplicationQuit() { if (_running) Stop(); }
 
@@ -206,6 +211,7 @@ namespace StraftatRockets
             Camera.onPreCull += PreCull;
             Camera.onPostRender += PostRender;
             _running = true;
+            enabled = true;
             Plugin.Log.LogInfo(victim != null ? $"final kill cam: {NameOf(victim)} was the last kill of the set" : "final kill cam: preview");
         }
 
@@ -384,6 +390,7 @@ namespace StraftatRockets
         private void Stop()
         {
             _running = false;
+            enabled = false;
             Camera.onPreCull -= PreCull;
             Camera.onPostRender -= PostRender;
             if (_posed) Unpose();

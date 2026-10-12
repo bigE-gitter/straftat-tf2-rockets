@@ -15,7 +15,7 @@ namespace StraftatRockets
     {
         public const string Guid = "melty.straftat.tf2rockets";
         public const string Name = "STRAFTAT x TF2 Rockets";
-        public const string Version = "0.4.0";
+        public const string Version = "0.4.1";
         public const string LauncherName = "RocketLauncher";
 
         internal static ManualLogSource Log;
@@ -37,8 +37,21 @@ namespace StraftatRockets
                         $"gravity in rocket flight {Tf2.Gravity} m/s^2");
         }
 
-        internal static bool IsLauncher(GameObject go) =>
-            go != null && go.name.StartsWith(LauncherName);
+        // GameObject.name makes a new string on every read; a launcher's name never changes, so each object is
+        // checked once
+        private static readonly Dictionary<int, bool> LauncherIds = new Dictionary<int, bool>();
+
+        internal static bool IsLauncher(GameObject go)
+        {
+            if (go == null) return false;
+            int id = go.GetInstanceID();
+            if (!LauncherIds.TryGetValue(id, out bool yes))
+            {
+                if (LauncherIds.Count > 4096) LauncherIds.Clear();
+                LauncherIds[id] = yes = go.name.StartsWith(LauncherName, System.StringComparison.Ordinal);
+            }
+            return yes;
+        }
     }
 
     // ------------------------------------------------------------------ rules.launcher_only / no_pickups
@@ -181,20 +194,38 @@ namespace StraftatRockets
     internal static class LocalPlayer
     {
         private static FirstPersonController _fpc;
+        private static PlayerPickup _pickup;
+        private static float _nextSearch;
 
+        /// Your own controller. While there is no enabled one (dead, menus, loading) the scene is searched at most
+        /// every 0.1 s instead of on every call; a controller starting up (SpeedRange.AfterStart) ends the wait.
         internal static FirstPersonController Controller
         {
             get
             {
                 if (_fpc != null && _fpc.isActiveAndEnabled) return _fpc;
+                if (Time.unscaledTime < _nextSearch) return _fpc != null ? _fpc : null;
+                _nextSearch = Time.unscaledTime + 0.1f;
                 _fpc = null;
+                _pickup = null;
                 foreach (var f in Object.FindObjectsOfType<FirstPersonController>())
                     if (f.IsOwner) { _fpc = f; break; }
                 return _fpc;
             }
         }
 
-        internal static PlayerPickup Pickup => Controller != null ? Controller.GetComponent<PlayerPickup>() : null;
+        internal static void SearchAgain() => _nextSearch = 0f;
+
+        internal static PlayerPickup Pickup
+        {
+            get
+            {
+                var c = Controller;
+                if (c == null) return null;
+                if (_pickup == null || _pickup.gameObject != c.gameObject) _pickup = c.GetComponent<PlayerPickup>();
+                return _pickup;
+            }
+        }
     }
 
     // ------------------------------------------------------------------ rules.infinite_ammo / no_recoil_push / tf2_rocket (fire rate)

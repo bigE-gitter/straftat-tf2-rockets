@@ -21,6 +21,7 @@ namespace StraftatRockets
         [HarmonyPostfix, HarmonyPatch(typeof(FirstPersonController), "Start")]
         private static void AfterStart(FirstPersonController __instance)
         {
+            LocalPlayer.SearchAgain();
             WalkSpeed(__instance) = Tf2.SoldierMaxSpeed;
             SprintSpeed(__instance) = Tf2.SoldierMaxSpeed;
             AirSpeed(__instance) = Tf2.SoldierMaxSpeed;

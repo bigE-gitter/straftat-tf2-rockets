@@ -174,10 +174,18 @@ namespace StraftatRockets
         }
 
         /// hooks.viewmodel_apply: every frame, from the launcher's own Update.
+        private static readonly System.Collections.Generic.Dictionary<int, OriginalMarker> Markers = new System.Collections.Generic.Dictionary<int, OriginalMarker>();
+
         internal static void Apply(ItemBehaviour item)
         {
-            var m = item.GetComponentInChildren<OriginalMarker>(true);
-            if (m == null) return;
+            int id = item.GetInstanceID();
+            if (!Markers.TryGetValue(id, out var m) || m == null)
+            {
+                m = item.GetComponentInChildren<OriginalMarker>(true);
+                if (m == null) return;
+                if (Markers.Count > 256) Markers.Clear();
+                Markers[id] = m;
+            }
             var me = LocalPlayer.Controller;
             bool mine = me != null && item.rootObject == me.gameObject;
             if (m.Pivot != null)
@@ -221,6 +229,7 @@ namespace StraftatRockets
         private void Update()
         {
             if (Input.GetKeyDown(Viewmodel.PanelKey.Value)) SetOpen(!Open);
+            useGUILayout = Open; // closed, only the slot HUD draws (plain GUI), so Unity skips the layout pass
             Viewmodel.TickSpin();
         }
 

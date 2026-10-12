@@ -135,6 +135,8 @@ namespace StraftatRockets
         // for its first 0.1 s (2.5 m at TF2 speed, so a rocket at your feet went through the floor) and only tests a
         // 0.2 m sphere at its position. Sweep every step instead (the shooter and their gun are never hit), stop the
         // rocket 1 unit out of what it hit, and let STRAFTAT's own collision code burst it there this frame.
+        private static readonly RaycastHit[] SweepHits = new RaycastHit[64];
+
         [HarmonyPrefix, HarmonyPatch(typeof(PredictedProjectile), "Move")]
         private static void BeforeMove(PredictedProjectile __instance, out Vector3 __state) => __state = __instance.transform.position;
 
@@ -150,8 +152,10 @@ namespace StraftatRockets
             float bestDist = float.MaxValue;
             var root = Root(__instance);
             var gun = Gun(__instance);
-            foreach (var h in Physics.RaycastAll(__state, step / len, len, HitLayers(__instance), QueryTriggerInteraction.Ignore))
+            int hits = Physics.RaycastNonAlloc(__state, step / len, SweepHits, len, HitLayers(__instance), QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits; i++)
             {
+                var h = SweepHits[i];
                 if (h.distance >= bestDist) continue;
                 if (root != null && h.transform.IsChildOf(root.transform)) continue;
                 if (gun != null && h.transform.IsChildOf(gun.transform)) continue;

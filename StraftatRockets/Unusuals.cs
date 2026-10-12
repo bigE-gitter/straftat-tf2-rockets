@@ -23,12 +23,13 @@ namespace StraftatRockets
         {
             if (string.IsNullOrEmpty(id) || System.Array.IndexOf(Ids, id) < 0) id = "none";
             strength = Mathf.Round(Mathf.Clamp(strength, 0.25f, 3f) * 20f) / 20f;
-            var key = id == "none" ? "none" : $"{id}|{strength:0.00}";
-            if (m.UnusualId != key)
+            if (id == "none") strength = 0f;
+            if (m.UnusualId != id || m.UnusualStrength != strength)
             {
                 if (m.Unusual != null) Object.Destroy(m.Unusual);
                 m.Unusual = id == "none" ? null : Build(m, id, strength);
-                m.UnusualId = key;
+                m.UnusualId = id;
+                m.UnusualStrength = strength;
             }
             if (m.Unusual != null && m.Unusual.activeSelf != visible) m.Unusual.SetActive(visible);
         }

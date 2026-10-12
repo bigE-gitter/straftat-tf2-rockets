@@ -43,9 +43,11 @@ namespace StraftatRockets
         internal MeshRenderer Renderer;
         internal MeshFilter Filter;
         internal Material Template;          // STRAFTAT's launcher material (its shader and lighting)
-        internal string Look;                // model|tint|opacity currently shown
+        internal string LookId;              // model currently shown
+        internal int LookR, LookG, LookB, LookO; // its tint and opacity, in hundredths
         internal Material[] Owned;           // material instances made for this launcher
         internal string UnusualId;           // rules.cosmetics: unusual effect currently on it
+        internal float UnusualStrength;
         internal GameObject Unusual;
         internal string NativeName;          // rules.loadout: STRAFTAT gun shown instead (sniper slot)
         internal GameObject Native;
@@ -535,14 +537,17 @@ namespace StraftatRockets
             var model = Get(modelId) ?? Get(DefaultLauncher);
             if (model != null && model.Mesh == null && model.Kind == "melee" && !TF2Import.LoadLazy(model)) model = Get("market_gardener");
             if (model?.Mesh == null) return;
-            string look = $"{model.Id}|{tint.r:0.00},{tint.g:0.00},{tint.b:0.00}|{opacity:0.00}";
-            if (marker.Look == look) return;
-            marker.Look = look;
+            int r = Hundredths(tint.r), g = Hundredths(tint.g), b = Hundredths(tint.b), o = Hundredths(opacity);
+            if (marker.LookId == model.Id && marker.LookR == r && marker.LookG == g && marker.LookB == b && marker.LookO == o) return;
+            marker.LookId = model.Id;
+            marker.LookR = r; marker.LookG = g; marker.LookB = b; marker.LookO = o;
             marker.Filter.sharedMesh = model.Mesh;
             if (marker.Owned != null) foreach (var m in marker.Owned) Object.Destroy(m);
             marker.Owned = BuildMaterials(model, marker.Template, tint, opacity);
             marker.Renderer.sharedMaterials = marker.Owned;
         }
+
+        private static int Hundredths(float v) => Mathf.RoundToInt(v * 100f);
 
         /// One material per submesh. Untinted and opaque keeps STRAFTAT's own shader (its lighting); a colour or
         /// transparency uses a shader whose _Color multiplies the texture and whose alpha blends.

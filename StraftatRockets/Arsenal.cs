@@ -413,10 +413,16 @@ namespace StraftatRockets
 
         // ------------------------------------------------------------------ HUD
         private static GUIStyle _style, _active;
+        private static int _hudFrame = -1;
+        private static bool _hudHolding;
+        private static string _hudLauncher, _hudSniper, _hudMelee;
+        private static GameMode _hudMode;
+        private static readonly string[] HudLabels = new string[4];
 
         internal static void DrawHud()
         {
-            if (FinalKillCam.Running || !Holding(out _, out _)) return;
+            if (Time.frameCount != _hudFrame) { _hudFrame = Time.frameCount; _hudHolding = Holding(out _, out _); }
+            if (FinalKillCam.Running || !_hudHolding) return;
             var pm = PauseManager.Instance;
             if (pm != null && (pm.inMainMenu || pm.inVictoryMenu)) return;
             if (_style == null)
@@ -426,12 +432,22 @@ namespace StraftatRockets
                 _active = new GUIStyle(_style) { fontStyle = FontStyle.Bold };
                 _active.normal.textColor = new Color(1f, 0.85f, 0.45f, 1f);
             }
+            if (HudLabels[0] == null || _hudMode != _mode || _hudLauncher != Viewmodel.Model.Value ||
+                _hudSniper != Viewmodel.Sniper.Value || _hudMelee != Viewmodel.Melee.Value)
+            {
+                _hudMode = _mode;
+                _hudLauncher = Viewmodel.Model.Value;
+                _hudSniper = Viewmodel.Sniper.Value;
+                _hudMelee = Viewmodel.Melee.Value;
+                HudLabels[0] = ModeName(_mode);
+                for (int s = 1; s <= 3; s++) HudLabels[s] = $"{SlotName(s)}  {s}";
+            }
             float w = 260f, x = Screen.width - w - 20f, y = Screen.height * 0.55f;
-            GUI.Label(new Rect(x, y - 26f, w, 22f), ModeName(_mode), _style);
+            GUI.Label(new Rect(x, y - 26f, w, 22f), HudLabels[0], _style);
             for (int s = 1; s <= 3; s++)
             {
                 if (!HasSlot(s)) continue;
-                GUI.Label(new Rect(x, y, w, 22f), $"{SlotName(s)}  {s}", s == Slot ? _active : _style);
+                GUI.Label(new Rect(x, y, w, 22f), HudLabels[s], s == Slot ? _active : _style);
                 y += 24f;
             }
         }
