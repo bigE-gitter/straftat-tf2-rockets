@@ -318,12 +318,16 @@ namespace StraftatRockets
         private bool StartReplay()
         {
             _killTime = Time.time;
-            if (_killer == null || Replay.Count < 8) return false;
-            if (!Replay.Bodies.TryGetValue(_killer.GetInstanceID(), out _killerBody)) return false;
+            if (_killer == null || Replay.Count < 8) { Plugin.Log.LogInfo("final kill cam: no replay (nothing recorded yet)"); return false; }
+            if (!Replay.Bodies.TryGetValue(_killer.GetInstanceID(), out _killerBody))
+            {
+                Plugin.Log.LogInfo($"final kill cam: no replay ({NameOf(_killer)} was not recorded; {Replay.Bodies.Count} bodies recorded)");
+                return false;
+            }
             _victimBody = null;
             if (_victim != null) Replay.Bodies.TryGetValue(_victim.GetInstanceID(), out _victimBody);
             float start = Mathf.Max(Replay.Oldest, _killTime - Tuning.KillCamReplayTime);
-            if (Replay.Newest - start < 1f) return false;
+            if (Replay.Newest - start < 1f) { Plugin.Log.LogInfo("final kill cam: no replay (under 1 s recorded)"); return false; }
             _r = start;
             _replayClock = 0f;
             _cursor = 0;

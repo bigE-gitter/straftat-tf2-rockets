@@ -65,6 +65,11 @@ namespace StraftatRockets
 
         private static readonly AccessTools.FieldRef<PlayerSetup, GameObject> GraphicsRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject>("graphics");
         private static readonly AccessTools.FieldRef<PlayerPickup, Camera> CamRef = AccessTools.FieldRefAccess<PlayerPickup, Camera>("cam");
+        // STRAFTAT switches your own body's mesh parts off in first person (the skeleton keeps animating); the
+        // first-person arms are separate meshes that must not be copied
+        private static readonly AccessTools.FieldRef<PlayerSetup, GameObject[]> HiddenForMeRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject[]>("gameObjectsToDisableForMe");
+        private static readonly AccessTools.FieldRef<PlayerSetup, GameObject[]> FpArmsRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject[]>("fpArms");
+        private static readonly HashSet<int> Warned = new HashSet<int>();
 
         internal static readonly float[] Times = new float[Cap];
         internal static int Head = -1, Count;
@@ -134,7 +139,7 @@ namespace StraftatRockets
                 int key = ph.GetInstanceID();
                 int renderers = graphics.GetComponentsInChildren<Renderer>(false).Length;
                 if (Bodies.TryGetValue(key, out var have) && have.Graphics == graphics && have.RendererCount == renderers) continue;
-                var body = Build(ph, graphics, renderers);
+                var body = Build(ph, setup, graphics, renderers);
                 if (body != null) Bodies[key] = body;
             }
             Gone.Clear();
@@ -149,12 +154,45 @@ namespace StraftatRockets
             foreach (var k in Gone) Bodies.Remove(k);
         }
 
-        private static Body Build(PlayerHealth ph, GameObject graphics, int rendererCount)
+        private static bool Under(Transform t, HashSet<Transform> roots)
         {
+            for (; t != null; t = t.parent) if (roots.Contains(t)) return true;
+            return false;
+        }
+
+        private static bool InItem(Transform t)
+        {
+            for (; t != null; t = t.parent) if (t.GetComponent<ItemBehaviour>() != null || t.GetComponent<OriginalMarker>() != null) return true;
+            return false;
+        }
+
+        private static HashSet<Transform> Roots(params GameObject[][] lists)
+        {
+            var set = new HashSet<Transform>();
+            foreach (var list in lists)
+                if (list != null) foreach (var go in list) if (go != null) set.Add(go.transform);
+            return set;
+        }
+
+        private static Body Build(PlayerHealth ph, PlayerSetup setup, GameObject graphics, int rendererCount)
+        {
+            var hiddenForMe = Roots(ph.IsOwner ? HiddenForMeRef(setup) : null);
+            var fpArms = Roots(FpArmsRef(setup), setup.fpArmsSuits);
             var skins = new List<SkinnedMeshRenderer>();
-            foreach (var s in graphics.GetComponentsInChildren<SkinnedMeshRenderer>(false))
-                if (s.sharedMesh != null && s.GetComponentInParent<ItemBehaviour>() == null) skins.Add(s);
-            if (skins.Count == 0) return null;
+            int all = 0;
+            foreach (var s in graphics.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                all++;
+                if (s.sharedMesh == null || InItem(s.transform) || Under(s.transform, fpArms)) continue;
+                if (s.gameObject.activeInHierarchy || Under(s.transform, hiddenForMe)) skins.Add(s);
+            }
+            if (skins.Count == 0)
+            {
+                if (Warned.Add(ph.GetInstanceID()))
+                    Plugin.Log.LogWarning($"replay: cannot record {ph.gameObject.name}: none of its {all} skinned meshes is a body mesh " +
+                                          $"(graphics '{graphics.name}' active {graphics.activeInHierarchy}, own player {ph.IsOwner})");
+                return null;
+            }
             var bones = new List<Transform>();
             var index = new Dictionary<Transform, int>();
             int Add(Transform t)
@@ -180,7 +218,7 @@ namespace StraftatRockets
             {
                 var mr = mf.GetComponent<MeshRenderer>();
                 if (mf.sharedMesh == null || mr == null || !mr.enabled) continue;
-                if (mf.GetComponentInParent<ItemBehaviour>() != null || mf.GetComponentInParent<OriginalMarker>() != null) continue;
+                if (InItem(mf.transform) || Under(mf.transform, fpArms)) continue;
                 props.Add(mf);
                 Add(mf.transform);
             }
@@ -201,7 +239,7 @@ namespace StraftatRockets
             // an animator that skips off-screen bodies would record a frozen pose for anyone you are not looking at
             foreach (var a in graphics.GetComponentsInChildren<Animator>(true))
                 if (a.cullingMode != AnimatorCullingMode.AlwaysAnimate) a.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            Plugin.Log.LogInfo($"replay: recording {ph.gameObject.name}: {skins.Count} skinned meshes, {propStart} bones " +
+            Plugin.Log.LogInfo($"replay: recording {ph.gameObject.name}{(ph.IsOwner ? " (you)" : "")}: {skins.Count} skinned meshes, {propStart} bones " +
                                $"(camera on '{bones[body.Hips].name}'), {props.Count} props");
             return body;
         }
