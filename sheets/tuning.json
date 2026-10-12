@@ -92,6 +92,34 @@
       "unit": "m",
       "why": "Camera distance from the killer's face in the freeze frame",
       "verified_in_game": false
+    },
+    {
+      "id": "KillCamReplayTime",
+      "value": 4.0,
+      "unit": "s (recorded)",
+      "why": "How much of the lead-up the final kill cam replays (user, 2026-10-12: a 4 second replay before the kill, to see the rocket jump)",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamReplaySlowTime",
+      "value": 0.8,
+      "unit": "s (recorded)",
+      "why": "The last part of the replay before the kill plays slowed down",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamReplaySlowRate",
+      "value": 0.4,
+      "unit": "x",
+      "why": "Replay speed in that last part",
+      "verified_in_game": false
+    },
+    {
+      "id": "KillCamReplayRate",
+      "value": 30.0,
+      "unit": "Hz",
+      "why": "Recording rate of player bodies, weapons and rockets (the replay blends between frames)",
+      "verified_in_game": false
     }
   ]
 }

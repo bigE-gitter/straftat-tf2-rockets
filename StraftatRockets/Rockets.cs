@@ -19,12 +19,19 @@ namespace StraftatRockets
         public bool Jumper;             // Rocket Jumper rocket: pushes, never damages others
         public float SniperDamage;      // TF2 damage of the shot (shooter's client only)
         public bool SniperCanCrit;
+        public int Serial;              // rules.final_kill_cam (replay): this shot (STRAFTAT reuses projectile objects)
+        public bool LookTried;          // the model the rocket shows, found once
+        public Transform Look;
+        public Mesh LookMesh;
+        public Material[] LookMats;
     }
 
     [HarmonyPatch]
     internal static class Rockets
     {
         private static readonly Dictionary<PredictedProjectile, RocketInfo> Live = new Dictionary<PredictedProjectile, RocketInfo>();
+        internal static Dictionary<PredictedProjectile, RocketInfo> LiveRockets => Live;
+        private static int _serial;
         internal static int IncomingSlot; // set by Arsenal.DecodeSlot just before STRAFTAT initializes the projectile
 
         private static readonly AccessTools.FieldRef<PredictedProjectile, float> MoveRate = AccessTools.FieldRefAccess<PredictedProjectile, float>("MOVE_RATE");
@@ -70,7 +77,9 @@ namespace StraftatRockets
                 var shot = Visuals.Pick(their?.Fire, Visuals.FireClip);
                 var gunAudio = gun.GetComponent<Weapon>()?.audio;
                 if (shot != null && gunAudio != null) gunAudio.PlayOneShot(shot);
+                Replay.OnFired(__instance.transform.position, shot, rootObject);
             }
+            else Replay.OnFired(__instance.transform.position, gun.GetComponent<Weapon>()?.fireClip, rootObject);
             if (slot == 2)
             {
                 // rules.sniper_rifle: a near-hitscan bullet with a tracer, no explosion, no push
@@ -83,7 +92,7 @@ namespace StraftatRockets
                 Live[__instance] = new RocketInfo
                 {
                     FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position,
-                    Shooter = rootObject, Slot = 2,
+                    Shooter = rootObject, Slot = 2, Serial = ++_serial,
                 };
                 return;
             }
@@ -98,7 +107,7 @@ namespace StraftatRockets
                 HitVfx(__instance) = Silent(HitVfx(__instance));
                 ExplosionDecal(__instance) = Silent(ExplosionDecal(__instance));
             }
-            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject, Jumper = jumpSnipe };
+            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject, Jumper = jumpSnipe, Serial = ++_serial };
             // rules.cosmetics: your own rockets fly as the model you picked, everyone else's as TF2's rocket
             var me = LocalPlayer.Controller;
             bool mine = me != null && rootObject == me.gameObject;
@@ -191,6 +200,23 @@ namespace StraftatRockets
             __instance.enabled = false; // -> OnDisable -> Explode (TF2 damage and push)
         }
 
+        /// rules.final_kill_cam (replay): the mesh the rocket is drawn with (the TF2 model under it, else STRAFTAT's).
+        internal static void FindLook(PredictedProjectile p, RocketInfo info)
+        {
+            info.LookTried = true;
+            if (info.Slot == 2) return; // a tracer
+            var marker = p.GetComponentInChildren<ProjectileMarker>(true);
+            var mf = marker != null ? marker.GetComponent<MeshFilter>() : null;
+            if (mf == null)
+                foreach (var r in p.GetComponentsInChildren<MeshRenderer>(true))
+                    if (!r.forceRenderingOff && r.GetComponent<MeshFilter>() != null) { mf = r.GetComponent<MeshFilter>(); break; }
+            if (mf == null || mf.sharedMesh == null) return;
+            info.Look = mf.transform;
+            info.LookMesh = mf.sharedMesh;
+            var mr = mf.GetComponent<MeshRenderer>();
+            info.LookMats = mr != null ? mr.sharedMaterials : null;
+        }
+
         // the projectile disables itself the moment it bursts (and when it fizzles after 150 m or a round ends)
         [HarmonyPostfix, HarmonyPatch(typeof(PredictedProjectile), "OnDisable")]
         private static void AfterDisable(PredictedProjectile __instance)
@@ -199,6 +225,12 @@ namespace StraftatRockets
             Live.Remove(__instance);
             if (info.Exploded || PauseManager.BetweenRounds || Distance(__instance) > 150f) return;
             info.Exploded = true;
+            if (info.Slot != 2)
+            {
+                var audio = Audio(__instance);
+                Replay.OnBurst(info.Serial, __instance.transform.position, HitVfx(__instance), audio != null ? audio.clip : null,
+                               info.Shooter, OrientateVfx(__instance), info.HitNormal);
+            }
             Explode(__instance, info, __instance.transform.position);
         }
 
