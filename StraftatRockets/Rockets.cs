@@ -61,6 +61,7 @@ namespace StraftatRockets
             if (!Plugin.IsLauncher(gun)) return;
             int slot = IncomingSlot == 2 ? 2 : 1;
             IncomingSlot = 0;
+            int serial = ++_serial;
             UsePhysics(__instance) = false;
             UseGravity(__instance) = false;
             MoveRate(__instance) = slot == 2 ? Tf2.SniperBulletSpeed : Tf2.RocketSpeed;
@@ -77,9 +78,9 @@ namespace StraftatRockets
                 var shot = Visuals.Pick(their?.Fire, Visuals.FireClip);
                 var gunAudio = gun.GetComponent<Weapon>()?.audio;
                 if (shot != null && gunAudio != null) gunAudio.PlayOneShot(shot);
-                Replay.OnFired(__instance.transform.position, shot, rootObject);
+                Replay.OnFired(__instance.transform.position, shot, rootObject, slot, serial);
             }
-            else Replay.OnFired(__instance.transform.position, gun.GetComponent<Weapon>()?.fireClip, rootObject);
+            else Replay.OnFired(__instance.transform.position, gun.GetComponent<Weapon>()?.fireClip, rootObject, slot, serial);
             if (slot == 2)
             {
                 // rules.sniper_rifle: a near-hitscan bullet with a tracer, no explosion, no push
@@ -92,7 +93,7 @@ namespace StraftatRockets
                 Live[__instance] = new RocketInfo
                 {
                     FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position,
-                    Shooter = rootObject, Slot = 2, Serial = ++_serial,
+                    Shooter = rootObject, Slot = 2, Serial = serial,
                 };
                 return;
             }
@@ -107,7 +108,7 @@ namespace StraftatRockets
                 HitVfx(__instance) = Silent(HitVfx(__instance));
                 ExplosionDecal(__instance) = Silent(ExplosionDecal(__instance));
             }
-            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject, Jumper = jumpSnipe, Serial = ++_serial };
+            Live[__instance] = new RocketInfo { FiredFrom = rootObject != null ? rootObject.transform.position : __instance.transform.position, Shooter = rootObject, Jumper = jumpSnipe, Serial = serial };
             // rules.cosmetics: your own rockets fly as the model you picked, everyone else's as TF2's rocket
             var me = LocalPlayer.Controller;
             bool mine = me != null && rootObject == me.gameObject;
@@ -229,7 +230,7 @@ namespace StraftatRockets
             {
                 var audio = Audio(__instance);
                 Replay.OnBurst(info.Serial, __instance.transform.position, HitVfx(__instance), audio != null ? audio.clip : null,
-                               info.Shooter, OrientateVfx(__instance), info.HitNormal);
+                               info.Shooter, OrientateVfx(__instance), info.HitNormal, info.Jumper);
             }
             Explode(__instance, info, __instance.transform.position);
         }
@@ -315,9 +316,12 @@ namespace StraftatRockets
                 if (!rocket.isOwner || info.HitCollider == null) return;
                 var victim = info.HitCollider.GetComponentInParent<PlayerHealth>();
                 if (victim == null || victim.gameObject == info.Shooter) return;
-                bool head = info.HitCollider.name == "Head_Col" || info.HitCollider.name == "Neck_1_Col";
-                float dmg = head ? float.PositiveInfinity : Tuning.SniperBodyDamage;
-                Plugin.Log.LogInfo($"sniper hit {victim.gameObject.name}: {(head ? "headshot" : "body")}");
+                // STRAFTAT's own guns count only Head_Col as the head (the neck box reaches the shoulders)
+                bool head = info.HitCollider.name == "Head_Col";
+                float before = victim.sync___get_value_health();
+                float dmg = head || Arsenal.BodyShotsToKill <= 1 ? float.PositiveInfinity : Tuning.SniperBodyDamage;
+                Plugin.Log.LogInfo($"sniper hit {victim.gameObject.name} on {info.HitCollider.name}: {(head ? "headshot" : "body")}, " +
+                                   $"health {before:0.##} -> {(float.IsInfinity(dmg) ? 0f : Mathf.Max(0f, before - dmg)):0.##}");
                 ApplyDamage(victim, dmg, info.Shooter, blast, rocket.transform.forward, Arsenal.SlotName(2), head ? "headshot" : "killed", null);
                 return;
             }

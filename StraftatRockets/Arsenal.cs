@@ -20,7 +20,11 @@ namespace StraftatRockets
     internal static class Arsenal
     {
         internal const string LobbyKey = "tf2r_mode";
+        internal const string BodyShotsKey = "tf2r_body";
         internal static ConfigEntry<string> ModeSetting;
+        internal static ConfigEntry<int> BodyShotsSetting;
+        private static int _bodyShots = 2;
+        private static float _hipSpread = -1f;
         internal static int Slot = 1;
         internal static float DeployedAt;
         private static GameMode _mode = GameMode.Rockets;
@@ -39,12 +43,17 @@ namespace StraftatRockets
         private static float _nextSwing;
 
         internal static GameMode Mode => _mode;
+        /// Sniper body shots that kill (the host's pick); a headshot always kills.
+        internal static int BodyShotsToKill => _bodyShots;
         internal static string ModeName(GameMode m) => m == GameMode.Rockets ? "Rockets" : "Jump & Snipe";
 
         internal static void Bind(ConfigFile cfg)
         {
             ModeSetting = cfg.Bind("Game", "Mode", "rockets",
                 "Game mode when you host: 'rockets' (rocket launcher + Market Gardener) or 'jump_snipe' (Rocket Jumper + Sniper Rifle + Market Gardener). Players who join use the host's mode.");
+            BodyShotsSetting = cfg.Bind("Game", "SniperBodyShots", 2, new ConfigDescription(
+                "Sniper body shots that kill when you host (1 or 2); a headshot always kills. Players who join use the host's setting.",
+                new AcceptableValueRange<int>(1, 2)));
         }
 
         private static GameMode Parse(string v) => v == "jump_snipe" ? GameMode.JumpSnipe : GameMode.Rockets;
@@ -82,6 +91,7 @@ namespace StraftatRockets
             if (Time.unscaledTime < _nextModeCheck) return;
             _nextModeCheck = Time.unscaledTime + 1f;
             var mode = Parse(ModeSetting.Value);
+            int body = Mathf.Clamp(BodyShotsSetting.Value, 1, 2);
             try
             {
                 ulong lobbyId = SteamLobby.Instance != null ? SteamLobby.Instance.CurrentLobbyID : 0UL;
@@ -92,9 +102,17 @@ namespace StraftatRockets
                     var shared = SteamMatchmaking.GetLobbyData(lobby, LobbyKey);
                     if (host && shared != Id(mode)) SteamMatchmaking.SetLobbyData(lobby, LobbyKey, Id(mode));
                     else if (!host && !string.IsNullOrEmpty(shared)) mode = Parse(shared);
+                    var sharedBody = SteamMatchmaking.GetLobbyData(lobby, BodyShotsKey);
+                    if (host && sharedBody != body.ToString()) SteamMatchmaking.SetLobbyData(lobby, BodyShotsKey, body.ToString());
+                    else if (!host && (sharedBody == "1" || sharedBody == "2")) body = sharedBody == "1" ? 1 : 2;
                 }
             }
             catch (Exception) { /* not in a Steam lobby (offline / exploration): the local setting */ }
+            if (body != _bodyShots)
+            {
+                _bodyShots = body;
+                Plugin.Log.LogInfo($"sniper body shots to kill: {body}");
+            }
             if (mode != _mode)
             {
                 _mode = mode;
@@ -111,6 +129,24 @@ namespace StraftatRockets
                 return lobbyId == 0UL || SteamMatchmaking.GetLobbyOwner(new CSteamID(lobbyId)) == SteamUser.GetSteamID();
             }
             catch (Exception) { return true; }
+        }
+
+        internal static void SetBodyShots(int n)
+        {
+            BodyShotsSetting.Value = Mathf.Clamp(n, 1, 2);
+            _nextModeCheck = 0f;
+            RefreshMode();
+        }
+
+        /// STRAFTAT's M2000 hip-fire inaccuracy (Weapon.notAimingAccuracy), read once from its prefab.
+        internal static float SniperHipSpread()
+        {
+            if (_hipSpread >= 0f) return _hipSpread;
+            var w = Visuals.StraftatPrefab("M2000")?.GetComponent<Weapon>();
+            if (w == null) return 0f;
+            _hipSpread = Mathf.Max(0f, w.notAimingAccuracy);
+            Plugin.Log.LogInfo($"sniper hip-fire spread: {_hipSpread:0.###} (STRAFTAT's M2000)");
+            return _hipSpread;
         }
 
         internal static void SetMode(GameMode m)
@@ -306,14 +342,21 @@ namespace StraftatRockets
 
         // ------------------------------------------------------------------ shot slot over the network
         /// hooks.shot_slot: the shot id STRAFTAT sends to every player (a random int) carries the slot in its low bits.
+        /// rules.sniper_rifle: a sniper shot from the hip spreads like STRAFTAT's M2000 does (its notAimingAccuracy, right
+        /// and up offsets on the aim); the spread direction is what everyone's game flies.
         [HarmonyPrefix, HarmonyPatch(typeof(DualLauncher), "ServerFire")]
-        private static void EncodeSlot(DualLauncher __instance, ref int id)
+        private static void EncodeSlot(DualLauncher __instance, ref Vector3 direction, ref int id)
         {
             if (!Plugin.IsLauncher(__instance.gameObject)) return;
             var item = __instance.GetComponent<ItemBehaviour>();
             var me = LocalPlayer.Controller;
             if (item == null || me == null || item.rootObject != me.gameObject) return;
             id = (id & ~3) | (PendingSlot & 3);
+            if (PendingSlot != 2 || me.isAiming || me.playerCamera == null) return;
+            float s = SniperHipSpread();
+            if (s <= 0f) return;
+            var cam = me.playerCamera.transform;
+            direction = (direction + cam.right * UnityEngine.Random.Range(-s, s) + cam.up * UnityEngine.Random.Range(-s, s)).normalized;
         }
 
         [HarmonyPrefix, HarmonyPatch(typeof(DualLauncher), "SpawnProjectile")]

@@ -160,13 +160,22 @@
     },
     {
       "id": "final_kill_cam",
-      "description": "The kill that wins a set (the take that brings a team to STRAFTAT's RoundScoreRequiredToWin) plays a cam on every player's screen. First a replay of the last tuning.KillCamReplayTime seconds (Replay.cs records every player's skinned bones, shown weapon and look direction, rockets, shots and bursts at tuning.KillCamReplayRate on each client; the replay shows render-only copies while the live players, ragdolls, launchers and rockets are hidden and the live game is held at tuning.KillCamFreeze): a chase camera over the killer's shoulder, then the last tuning.KillCamReplaySlowTime at tuning.KillCamReplaySlowRate riding behind the killing rocket (or from the side), with the recorded shot and blast sounds and effects. Then, live, slow motion (tuning.KillCamSlowMo) around the victim's ragdoll, a fly-in to the killer with TF2's freeze cam sound, a near-freeze (tuning.KillCamFreeze) with TF2's snapshot sound, a white flash and a FINAL BLOW banner, then STRAFTAT's end-of-round screen. Each player can turn it off (and the recording with it) in the F8 panel, or preview it with their own last seconds. Time scale changes are local; FishNet ticks run on unscaled time, and on the host the slow motion also delays the round-end timers, so the end screen follows the cam",
+      "description": "The kill that wins a set (the take that brings a team to STRAFTAT's RoundScoreRequiredToWin) plays a cam on every player's screen. First a replay of the last tuning.KillCamReplayTime seconds (Replay.cs records every player's skinned bones, shown weapon and look direction, rockets, shots and bursts at tuning.KillCamReplayRate on each client; the replay shows render-only copies while the live players, ragdolls, launchers and rockets are hidden and the live game is held at tuning.KillCamFreeze): seen through the killer's eyes (their recorded camera pose and, for your own view, zoom; their body hidden, their weapon in front) until the killing rocket is fired, then riding behind it; the last tuning.KillCamReplaySlowTime plays at tuning.KillCamReplaySlowRate (user 2026-10-12: show it from the killer's point of view until the last shot). Every camera that draws the world gets the shot (STRAFTAT draws through its death camera once you die); cameras that do not are switched off for the cam, with the recorded shot and blast sounds and effects. Then, live, slow motion (tuning.KillCamSlowMo) around the victim's ragdoll, a fly-in to the killer with TF2's freeze cam sound, a near-freeze (tuning.KillCamFreeze) with TF2's snapshot sound, a white flash and a FINAL BLOW banner, then STRAFTAT's end-of-round screen. Each player can turn it off (and the recording with it) in the F8 panel, or preview it with their own last seconds. Time scale changes are local; FishNet ticks run on unscaled time, and on the host the slow motion also delays the round-end timers, so the end screen follows the cam",
       "hooks": [
         "final_kill_cam",
         "final_kill_end_round_wait"
       ],
       "verified_offline": "GameManager.WaitForDraw/RoundWon, SceneMotor.ChangeNetworkScene, PlayerHealth.ExplodeForAll and FishNet TimeManager (unscaledDeltaTime ticks) read",
       "verified_in_game": false
+    },
+    {
+      "id": "sniper_rifle",
+      "description": "Jump & Snipe slot 2: a near-hitscan bullet (tf2.SniperBulletSpeed) riding STRAFTAT's networked rocket, its slot in the shot id's low bits; STRAFTAT's M2000 aim (right-click any time, its zoom, aim position and scope image), no charge; direct hit only, no push. Headshot = STRAFTAT's Head_Col only (its own guns' rule; the neck box reaches the shoulders - user 2026-10-12: body shots were one-shotting) and always kills. Body shots that kill: 1 or 2, the host's F8 pick shared as Steam lobby data 'tf2r_body' (config Game.SniperBodyShots, default 2; 2 = tuning.SniperBodyDamage per hit). From the hip (not aiming) the shot spreads like STRAFTAT's M2000: its Weapon.notAimingAccuracy as random right/up offsets on the aim, applied to the networked shot direction (user 2026-10-12: no bloom when not aiming)",
+      "hooks": [
+        "shot_slot"
+      ],
+      "verified_offline": "Gun.cs hip spread (ScopeAimWeapon && !isAiming -> notAimingAccuracy) and BeamGun/ChargeGun headshot (Head_Col) read",
+      "verified_in_game": "0.3.x played; 0.5.1 headshot rule, body-shot setting and hip spread not yet played"
     }
   ]
 }

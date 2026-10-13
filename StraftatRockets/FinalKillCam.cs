@@ -51,10 +51,6 @@ namespace StraftatRockets
         // what goes back afterwards
         private float _timeScale = 1f, _fixedDelta = 0.02f;
         private bool _posed;
-        private Vector3 _keepPos;
-        private Quaternion _keepRot;
-        private float _keepFov;
-        private int _keepMask;
         private readonly List<Camera> _hiddenCams = new List<Camera>();
         private GameObject _hud;
         private Transform _crosshair;
@@ -204,6 +200,7 @@ namespace StraftatRockets
             _fromPos = _cam.transform.position;
             _fromRot = _cam.transform.rotation;
             _fromFov = _cam.fieldOfView;
+            _baseFov = _fromFov;
             _camPos = _fromPos; _camRot = _fromRot; _camFov = _fromFov;
             _t = 0f;
             _zoomStarted = _frozen = _posed = false;
@@ -246,6 +243,8 @@ namespace StraftatRockets
                 _cam = WorldCamera();
             }
             if (_cam == null) { Stop(); return; }
+            if (_posedCams.Count > 0) Unpose(); // a camera that was posed but never drawn
+            HideOtherCameras();
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f);
             if (_replaying)
             {
@@ -342,7 +341,13 @@ namespace StraftatRockets
             while (_firedIdx < Replay.Fired.Count && Replay.Fired[_firedIdx].Time <= start) _firedIdx++;
             _burstIdx = 0;
             while (_burstIdx < Replay.Bursts.Count && Replay.Bursts[_burstIdx].Time <= start) _burstIdx++;
-            foreach (var body in Replay.Bodies.Values) _ghosts.Add(Replay.Ghost.Make(body));
+            _killerGhost = null;
+            foreach (var body in Replay.Bodies.Values)
+            {
+                var g = Replay.Ghost.Make(body);
+                _ghosts.Add(g);
+                if (body == _killerBody) _killerGhost = g;
+            }
             FindKillingRocket(start);
             // everything live that the ghosts stand in for is hidden while the replay draws
             _live.Clear();
@@ -359,7 +364,8 @@ namespace StraftatRockets
             }
             var fx = SoundManager.Instance != null ? SoundManager.Instance._effectsSource : null;
             if (fx != null) _sfx.outputAudioMixerGroup = fx.outputAudioMixerGroup;
-            Plugin.Log.LogInfo($"final kill cam: replaying {_killTime - start:0.0} s, {_ghosts.Count} players" +
+            _replayTag = "REPLAY  -  " + NameOf(_killer) + (_killer.IsOwner ? " (you)" : "");
+            Plugin.Log.LogInfo($"final kill cam: replaying {_killTime - start:0.0} s, {_ghosts.Count} players, through {NameOf(_killer)}'s eyes" +
                                (_rocketCam ? ", following the killing rocket" : ""));
             return true;
         }
@@ -381,7 +387,7 @@ namespace StraftatRockets
             float best = float.MaxValue;
             foreach (var b in Replay.Bursts)
             {
-                if (b.Shooter != shooter || b.Time < _killTime - 1.5f || b.Time < start || b.Time > _killTime + 0.1f) continue;
+                if (b.Harmless || b.Shooter != shooter || b.Time < _killTime - 1.5f || b.Time < start || b.Time > _killTime + 0.1f) continue;
                 float d = (b.Pos - victimAt).sqrMagnitude;
                 if (_victim != null && d > 25f) continue;
                 float score = _victim != null ? d : -b.Time;
@@ -393,13 +399,18 @@ namespace StraftatRockets
                 _rocketCam = true;
             }
             if (!_rocketCam) return;
+            // the ride starts when the rocket was fired (its shot), else at its first recorded frame
             _rocketStart = _rocketBurstTime;
-            for (int k = 0; k < Replay.Count; k++)
-            {
-                int f = Replay.Frame(k);
-                foreach (var shot in Replay.Shots[f])
-                    if (shot.Key == _rocketKey) { _rocketStart = Replay.Times[f]; k = Replay.Count; break; }
-            }
+            bool fired = false;
+            foreach (var e in Replay.Fired)
+                if (e.Rocket == _rocketKey) { _rocketStart = e.Time; fired = true; break; }
+            if (!fired)
+                for (int k = 0; k < Replay.Count; k++)
+                {
+                    int f = Replay.Frame(k);
+                    foreach (var shot in Replay.Shots[f])
+                        if (shot.Key == _rocketKey) { _rocketStart = Replay.Times[f]; k = Replay.Count; break; }
+                }
         }
 
         private void TickReplay(float dt)
@@ -510,7 +521,25 @@ namespace StraftatRockets
             Vector3 want, look, anchor = hips;
             float k;
             bool snap = _firstShot;
-            if (_rocketCam && _r >= Mathf.Max(_slowFrom, _rocketStart) && RocketAt(a, b, u, out var rp))
+            _pov = false;
+            bool killerHere = kb.Present[a] || kb.Present[b];
+            var rp = Vector3.zero;
+            bool riding = _rocketCam && _r >= _rocketStart && RocketAt(a, b, u, out rp);
+            if (!riding && !(_rocketCam && _cut) && killerHere)
+            {
+                // through the killer's eyes, with their weapon in front, until the killing rocket is fired
+                float v = kb.Present[a] && kb.Present[b] ? u : kb.Present[a] ? 0f : 1f;
+                _camPos = Vector3.Lerp(kb.CamPos[a], kb.CamPos[b], v);
+                _camRot = Quaternion.Slerp(kb.CamRot[a], kb.CamRot[b], v);
+                float fov = Mathf.Lerp(kb.CamFov[a], kb.CamFov[b], v);
+                _camFov = fov > 1f ? fov : _baseFov;
+                _pov = true;
+                _firstShot = false;
+                if (_killerGhost != null) _killerGhost.HideBody = true;
+                return;
+            }
+            if (_killerGhost != null) _killerGhost.HideBody = false;
+            if (riding)
             {
                 // ride behind the killing rocket
                 if (!_cut) { _cut = true; snap = true; }
@@ -529,7 +558,7 @@ namespace StraftatRockets
             }
             else if (_r >= _slowFrom)
             {
-                // the final moment from the side: killer and victim both in frame
+                // (the killer was not recorded here) the final moment from the side: killer and victim both in frame
                 var v = _victimPos;
                 if (_victimBody != null && Replay.BonePose(_victimBody, _victimBody.Hips, a, b, u, out var vh, out _)) v = vh;
                 var mid = (hips + v) * 0.5f;
@@ -548,7 +577,7 @@ namespace StraftatRockets
             }
             else
             {
-                // chase the killer over the shoulder
+                // (the killer was not recorded here) chase them over the shoulder
                 var right = Vector3.Cross(Vector3.up, flat);
                 want = hips - flat * 3.2f + Vector3.up * 1.0f + right * 0.7f;
                 look = hips + Vector3.up * 0.35f + aim * 5f;
@@ -563,10 +592,13 @@ namespace StraftatRockets
                 var face = Quaternion.LookRotation(dir);
                 _camRot = snap ? face : Quaternion.Slerp(_camRot, face, 1f - Mathf.Exp(-(k + 3f) * dt));
             }
-            _camFov = _fromFov;
+            _camFov = _baseFov;
         }
 
-        private bool _cut;
+        private bool _cut, _pov;
+        private string _replayTag = "REPLAY";
+        private Replay.Ghost _killerGhost;
+        private float _baseFov;
 
         /// The killing rocket's replay position; its flight direction is kept in _rocketDir.
         private bool RocketAt(int a, int b, float u, out Vector3 pos)
@@ -590,7 +622,8 @@ namespace StraftatRockets
             _barsIn = true;
             _fromPos = _camPos;
             _fromRot = _camRot;
-            _fromFov = _camFov;
+            _fromFov = _baseFov;
+            _pov = false;
             _t = 0f;
             _swoopScale = Tuning.KillCamFreeze;
             _swoopRamp = 0.35f; // time comes back into slow motion
@@ -609,6 +642,8 @@ namespace StraftatRockets
             _hiddenNow.Clear();
             _live.Clear();
             _cut = false;
+            _pov = false;
+            _killerGhost = null;
         }
 
         private void SetScale(float s)
@@ -668,20 +703,35 @@ namespace StraftatRockets
 
         // The game moves its camera in Update/LateUpdate; the shot replaces the pose only while the frame is drawn and
         // puts it back right after, so STRAFTAT's aim, kill cam and look code never see it.
+        private struct Kept
+        {
+            public Vector3 Pos;
+            public Quaternion Rot;
+            public float Fov, Near;
+            public int Mask;
+        }
+
+        private readonly Dictionary<Camera, Kept> _posedCams = new Dictionary<Camera, Kept>();
+        private static Camera[] _camBuffer = new Camera[16];
+
+        /// A camera that draws the world to the screen (STRAFTAT's player camera while alive, its death camera after).
+        private static bool DrawsWorld(Camera c) =>
+            c != null && c.cameraType == CameraType.Game && c.targetTexture == null && (c.cullingMask & 1) != 0;
+
+        // Whichever camera is drawing the world gets the shot, only while the frame is drawn; STRAFTAT's aim, death
+        // camera and look code never see it.
         private void PreCull(Camera c)
         {
-            if (!_running || c != _cam || _posed) return;
+            if (!_running || !DrawsWorld(c) || _posedCams.ContainsKey(c)) return;
             var tr = c.transform;
-            _keepPos = tr.localPosition;
-            _keepRot = tr.localRotation;
-            _keepFov = c.fieldOfView;
-            _keepMask = c.cullingMask;
+            _posedCams[c] = new Kept { Pos = tr.localPosition, Rot = tr.localRotation, Fov = c.fieldOfView, Near = c.nearClipPlane, Mask = c.cullingMask };
             tr.SetPositionAndRotation(_camPos, _camRot);
             c.fieldOfView = _camFov;
+            if (_pov) c.nearClipPlane = Mathf.Min(c.nearClipPlane, 0.02f); // the killer's weapon sits close to their eye
             int mask = c.cullingMask & ~(1 << WeaponLayer);
             if (_showSelf) mask |= 1 << SelfLayer;
             c.cullingMask = mask;
-            if (_replaying)
+            if (_replaying && _hiddenNow.Count == 0)
                 foreach (var r in _live)
                     if (r != null && r.enabled) { r.enabled = false; _hiddenNow.Add(r); }
             _posed = true;
@@ -689,27 +739,56 @@ namespace StraftatRockets
 
         private void PostRender(Camera c)
         {
-            if (!_posed || c != _cam) return;
-            Unpose();
+            if (!_posedCams.TryGetValue(c, out var k)) return;
+            _posedCams.Remove(c);
+            Restore(c, k);
+            if (_posedCams.Count == 0) ShowLive();
+        }
+
+        private static void Restore(Camera c, Kept k)
+        {
+            if (c == null) return;
+            c.transform.localPosition = k.Pos;
+            c.transform.localRotation = k.Rot;
+            c.fieldOfView = k.Fov;
+            c.nearClipPlane = k.Near;
+            c.cullingMask = k.Mask;
+        }
+
+        private void ShowLive()
+        {
+            foreach (var r in _hiddenNow) if (r != null) r.enabled = true;
+            _hiddenNow.Clear();
+            _posed = _posedCams.Count > 0;
         }
 
         private void Unpose()
         {
-            _posed = false;
-            if (_cam == null) return;
-            _cam.transform.localPosition = _keepPos;
-            _cam.transform.localRotation = _keepRot;
-            _cam.fieldOfView = _keepFov;
-            _cam.cullingMask = _keepMask;
-            foreach (var r in _hiddenNow) if (r != null) r.enabled = true;
-            _hiddenNow.Clear();
+            foreach (var kv in _posedCams) Restore(kv.Key, kv.Value);
+            _posedCams.Clear();
+            ShowLive();
+        }
+
+        /// The first-person gun camera and other screen cameras that do not draw the world would draw over the shot.
+        /// Checked every frame: STRAFTAT switches cameras when you die.
+        private void HideOtherCameras()
+        {
+            int n = Camera.allCamerasCount;
+            if (_camBuffer.Length < n) _camBuffer = new Camera[n * 2];
+            n = Camera.GetAllCameras(_camBuffer);
+            for (int i = 0; i < n; i++)
+            {
+                var c = _camBuffer[i];
+                if (c == null || !c.enabled || c.targetTexture != null || c.cameraType != CameraType.Game || DrawsWorld(c)) continue;
+                c.enabled = false;
+                _hiddenCams.Add(c);
+            }
         }
 
         private void HideHud()
         {
             _hiddenCams.Clear();
-            foreach (var c in Camera.allCameras)
-                if (c != _cam && c.enabled && (c.cullingMask & (1 << WeaponLayer)) != 0) { c.enabled = false; _hiddenCams.Add(c); }
+            HideOtherCameras();
             _hud = null;
             var me = LocalPlayer.Controller;
             var setup = me != null ? me.GetComponent<PlayerSetup>() : null;
@@ -784,7 +863,7 @@ namespace StraftatRockets
                     GUI.color = new Color(0.9f, 0.1f, 0.1f, 1f);
                     GUI.DrawTexture(new Rect(h / 25f, y0 - dot / 2f, dot, dot), Texture2D.whiteTexture);
                 }
-                Shadowed(new Rect(h / 25f + dot * 1.6f, y0 - h / 30f, w * 0.5f, h / 15f), _r >= _slowFrom ? "REPLAY  slow motion" : "REPLAY", _small, Color.white);
+                Shadowed(new Rect(h / 25f + dot * 1.6f, y0 - h / 30f, w * 0.5f, h / 15f), _replayTag, _small, Color.white);
                 _small.alignment = TextAnchor.MiddleCenter;
             }
             if (_frozen)
@@ -832,7 +911,11 @@ namespace StraftatRockets
 
         private static string NameOf(PlayerHealth ph)
         {
-            try { return ph.sync___get_value_playerValues().sync___get_value_playerClient().PlayerNameTag; }
+            try
+            {
+                var name = ph.sync___get_value_playerValues().sync___get_value_playerClient().PlayerName;
+                return string.IsNullOrEmpty(name) ? "Someone" : name;
+            }
             catch (Exception) { return "Someone"; }
         }
 

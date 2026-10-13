@@ -32,6 +32,9 @@ namespace StraftatRockets
             public Quaternion[] Rot;
             public bool[] Present;             // alive and shown in that frame
             public Vector3[] Aim;              // where the player looked
+            public Vector3[] CamPos;           // their view (camera) in world space
+            public Quaternion[] CamRot;
+            public float[] CamFov;             // your own zoom (0 for other players: their field of view is not sent)
             public Vector3[] GunPos, GunScale;
             public Quaternion[] GunRot;
             public Mesh[] GunMesh;             // the TF2 model shown (null: none or a STRAFTAT gun copy)
@@ -60,7 +63,9 @@ namespace StraftatRockets
             public AudioClip Clip;
             public GameObject Vfx;
             public int Shooter;                // the shooter's GameObject instance id
-            public int Rocket;                 // the shot's serial (bursts)
+            public int Rocket;                 // the shot's serial
+            public int Slot;                   // 1 rocket, 2 sniper bullet (shots)
+            public bool Harmless;              // a Rocket Jumper rocket: never the killing blow
         }
 
         private static readonly AccessTools.FieldRef<PlayerSetup, GameObject> GraphicsRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject>("graphics");
@@ -229,6 +234,7 @@ namespace StraftatRockets
                 RendererCount = rendererCount, Bones = bones.ToArray(), Scale = new Vector3[n], Skins = skins.ToArray(),
                 SkinBones = skinBones, SkinRoot = skinRoot, Props = props.ToArray(), PropStart = propStart,
                 Pos = new Vector3[Cap * n], Rot = new Quaternion[Cap * n], Present = new bool[Cap], Aim = new Vector3[Cap],
+                CamPos = new Vector3[Cap], CamRot = new Quaternion[Cap], CamFov = new float[Cap],
                 GunPos = new Vector3[Cap], GunScale = new Vector3[Cap], GunRot = new Quaternion[Cap], GunMesh = new Mesh[Cap],
                 GunMats = new Material[Cap][], GunNative = new GameObject[Cap],
             };
@@ -267,7 +273,19 @@ namespace StraftatRockets
                     t.GetPositionAndRotation(out body.Pos[o + b], out body.Rot[o + b]);
                 }
                 var cam = body.Pickup != null ? CamRef(body.Pickup) : null;
-                body.Aim[f] = cam != null ? cam.transform.forward : body.Health.transform.forward;
+                if (cam != null)
+                {
+                    cam.transform.GetPositionAndRotation(out body.CamPos[f], out body.CamRot[f]);
+                    body.CamFov[f] = body.Health.IsOwner && cam.enabled ? cam.fieldOfView : 0f;
+                }
+                else
+                {
+                    var root = body.Health.transform;
+                    body.CamPos[f] = root.position + Vector3.up * 1.6f;
+                    body.CamRot[f] = root.rotation;
+                    body.CamFov[f] = 0f;
+                }
+                body.Aim[f] = body.CamRot[f] * Vector3.forward;
                 RecordGun(body, f);
             }
             var shots = Shots[f];
@@ -315,21 +333,21 @@ namespace StraftatRockets
         }
 
         // ------------------------------------------------------------------ events from Rockets
-        internal static void OnFired(Vector3 pos, AudioClip clip, GameObject shooter)
+        internal static void OnFired(Vector3 pos, AudioClip clip, GameObject shooter, int slot, int serial)
         {
-            if (clip == null || FinalKillCam.Enabled == null || !FinalKillCam.Enabled.Value || FinalKillCam.Running) return;
+            if (FinalKillCam.Enabled == null || !FinalKillCam.Enabled.Value || FinalKillCam.Running) return;
             Prune(Fired);
-            Fired.Add(new Sfx { Time = Time.time, Pos = pos, Clip = clip, Shooter = shooter != null ? shooter.GetInstanceID() : 0 });
+            Fired.Add(new Sfx { Time = Time.time, Pos = pos, Clip = clip, Shooter = shooter != null ? shooter.GetInstanceID() : 0, Slot = slot, Rocket = serial });
         }
 
-        internal static void OnBurst(int serial, Vector3 pos, GameObject vfx, AudioClip clip, GameObject shooter, bool orient, Vector3 normal)
+        internal static void OnBurst(int serial, Vector3 pos, GameObject vfx, AudioClip clip, GameObject shooter, bool orient, Vector3 normal, bool harmless)
         {
             if (FinalKillCam.Enabled == null || !FinalKillCam.Enabled.Value || FinalKillCam.Running) return;
             Prune(Bursts);
             Bursts.Add(new Sfx
             {
                 Time = Time.time, Pos = pos, Rot = orient && normal != Vector3.zero ? Quaternion.LookRotation(normal) : Quaternion.identity,
-                Clip = clip, Vfx = vfx, Shooter = shooter != null ? shooter.GetInstanceID() : 0, Rocket = serial,
+                Clip = clip, Vfx = vfx, Shooter = shooter != null ? shooter.GetInstanceID() : 0, Rocket = serial, Harmless = harmless,
             });
         }
 
@@ -377,6 +395,7 @@ namespace StraftatRockets
             public Transform[] Bones;
             public Renderer[] Renderers;
             public bool Shown = true;
+            public bool HideBody;              // seen through this player's eyes: only the weapon shows
             public GameObject Gun;
             public MeshFilter GunFilter;
             public MeshRenderer GunRenderer;
@@ -441,13 +460,14 @@ namespace StraftatRockets
             internal void Pose(int a, int b, float u)
             {
                 var body = Body;
-                bool shown = body.Present[a] || body.Present[b];
+                bool present = body.Present[a] || body.Present[b];
+                bool shown = present && !HideBody;
                 if (shown != Shown)
                 {
                     Shown = shown;
                     foreach (var r in Renderers) if (r != null) r.enabled = shown;
                 }
-                if (!shown)
+                if (!present)
                 {
                     GunRenderer.enabled = false;
                     foreach (var nat in Natives.Values) if (nat != null) nat.SetActive(false);

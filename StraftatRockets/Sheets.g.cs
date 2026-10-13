@@ -111,7 +111,7 @@ namespace StraftatRockets
         public const float SlideWallScale = 0.451f; // x
         /// <summary>A jump pressed this long before landing from a rocket jump still hops on landing (user, play-test 5: could not chain rocket jumps right after landing)</summary>
         public const float JumpBufferTime = 0.2f; // s
-        /// <summary>Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up)</summary>
+        /// <summary>Sniper body shot takes half a player's health: 2 body shots or 1 headshot kill (user, 2026-10-10; no TF2 charge-up); used when the host's F8 'Body shots' is 2 (with 1, a body shot kills)</summary>
         public const float SniperBodyDamage = 5.0f; // STRAFTAT health (of 10)
         /// <summary>Time scale while the camera swoops around the falling ragdoll. Final kill cam (user, 2026-10-12: the player who wins the set gets a cool kill cam)</summary>
         public const float KillCamSlowMo = 0.2f; // x

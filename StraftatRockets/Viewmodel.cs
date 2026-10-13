@@ -330,6 +330,12 @@ namespace StraftatRockets
             if (host && GUILayout.Button(">", GUILayout.Width(28))) Arsenal.SetMode(Arsenal.Mode == GameMode.Rockets ? GameMode.JumpSnipe : GameMode.Rockets);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
+            GUILayout.Label("Body shots", GUILayout.Width(70));
+            if (host && GUILayout.Button("<", GUILayout.Width(28))) Arsenal.SetBodyShots(3 - Arsenal.BodyShotsToKill);
+            GUILayout.Label((Arsenal.BodyShotsToKill == 1 ? "1 sniper body shot kills" : "2 sniper body shots kill") + (host ? "" : "  (host's pick)"), GUILayout.Width(200));
+            if (host && GUILayout.Button(">", GUILayout.Width(28))) Arsenal.SetBodyShots(3 - Arsenal.BodyShotsToKill);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
             bool cam = GUILayout.Toggle(FinalKillCam.Enabled.Value, " Final kill cam (the kill that wins a set)");
             if (cam != FinalKillCam.Enabled.Value) FinalKillCam.Enabled.Value = cam;
             if (GUILayout.Button("Preview", GUILayout.Width(70))) { SetOpen(false); FinalKillCam.Preview(); }

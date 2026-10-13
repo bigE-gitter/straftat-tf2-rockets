@@ -5,12 +5,12 @@ rocket-jumping arena:
 
 - Two game modes, picked by the host in the F8 panel:
   - **Rockets**: 1 rocket launcher (TF2 damage), 3 Market Gardener.
-  - **Jump & Snipe**: 1 Rocket Jumper (rockets launch you but never hurt anyone), 2 sniper (STRAFTAT's M2000 scope,
-    two body shots or one headshot), 3 Market Gardener.
+  - **Jump & Snipe**: 1 Rocket Jumper (rockets launch you but never hurt anyone), 2 sniper (STRAFTAT's M2000 scope and
+    hip-fire spread; a headshot kills, body shots take two hits or one, the host's pick in F8), 3 Market Gardener.
   Switch weapons with 1/2/3 or the scroll wheel. The Market Gardener (left-click) crits for a one-hit kill while you
   are rocket jumping, like in TF2.
-- **Final kill cam**: the kill that wins a set plays for everyone: a replay of the last 3 seconds chasing the winner
-  (rocket jumps and all), slowing down to ride the killing rocket in, then a TF2 freeze cam: slow motion around the
+- **Final kill cam**: the kill that wins a set plays for everyone: a replay of the last 3 seconds through the winner's
+  eyes (rocket jumps and all), slowing down to ride the killing rocket in, then a TF2 freeze cam: slow motion around the
   falling ragdoll, a fly-in to the winner with TF2's freeze cam sound, a freeze frame with the snapshot sound and a
   FINAL BLOW banner. Turn it off or preview it with your own last few seconds in the F8 panel.
 - No weapon pickups, infinite ammo, no self-damage.
