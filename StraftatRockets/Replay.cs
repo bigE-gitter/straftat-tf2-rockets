@@ -2,10 +2,12 @@
 // (every bone's world pose), the weapon they show, where they look, the rockets in flight, shots and bursts - so the
 // final kill cam can play the lead-up to the set-winning kill. The bodies are rebuilt from the recorded bones as
 // render-only copies (same meshes and materials, no scripts, colliders or network objects).
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace StraftatRockets
 {
@@ -42,6 +44,7 @@ namespace StraftatRockets
             public GameObject[] GunNative;     // a STRAFTAT gun copy shown instead
             public GameObject GunObj;
             public OriginalMarker Marker;
+            public float BuiltAt;
         }
 
         internal struct Shot
@@ -75,6 +78,7 @@ namespace StraftatRockets
         private static readonly AccessTools.FieldRef<PlayerSetup, GameObject[]> HiddenForMeRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject[]>("gameObjectsToDisableForMe");
         private static readonly AccessTools.FieldRef<PlayerSetup, GameObject[]> FpArmsRef = AccessTools.FieldRefAccess<PlayerSetup, GameObject[]>("fpArms");
         private static readonly HashSet<int> Warned = new HashSet<int>();
+        private static readonly List<Renderer> RendererBuffer = new List<Renderer>();
 
         internal static readonly float[] Times = new float[Cap];
         internal static int Head = -1, Count;
@@ -108,6 +112,7 @@ namespace StraftatRockets
         {
             Head = -1;
             Count = 0;
+            foreach (var b in Bodies.Values) Recycle(b);
             Bodies.Clear();
             Fired.Clear();
             Bursts.Clear();
@@ -142,10 +147,16 @@ namespace StraftatRockets
                 var graphics = setup != null ? GraphicsRef(setup) : null;
                 if (graphics == null) continue;
                 int key = ph.GetInstanceID();
-                int renderers = graphics.GetComponentsInChildren<Renderer>(false).Length;
-                if (Bodies.TryGetValue(key, out var have) && have.Graphics == graphics && have.RendererCount == renderers) continue;
+                graphics.GetComponentsInChildren(false, RendererBuffer);
+                int renderers = RendererBuffer.Count;
+                // a body is set up again when its meshes change just after spawning (a hat put on), never mid-take:
+                // that would drop what it recorded
+                if (Bodies.TryGetValue(key, out var have) && have.Graphics == graphics &&
+                    (have.RendererCount == renderers || Time.unscaledTime - have.BuiltAt > 2f)) continue;
                 var body = Build(ph, setup, graphics, renderers);
-                if (body != null) Bodies[key] = body;
+                if (body == null) continue;
+                if (have != null) Recycle(have);
+                Bodies[key] = body;
             }
             Gone.Clear();
             foreach (var kv in Bodies)
@@ -156,7 +167,39 @@ namespace StraftatRockets
                 for (int k = 0; k < Count && !any; k++) any = kv.Value.Present[Frame(k)];
                 if (!any) Gone.Add(kv.Key);
             }
-            foreach (var k in Gone) Bodies.Remove(k);
+            foreach (var k in Gone) { Recycle(Bodies[k]); Bodies.Remove(k); }
+        }
+
+        // Recording buffers are reused between spawns (each take spawns everyone again), so taking turns does not keep
+        // allocating a few hundred KB per player for the garbage collector.
+        private static readonly List<Body> Spare = new List<Body>();
+
+        private static void Recycle(Body b)
+        {
+            if (b != null && b.Pos != null && Spare.Count < 8) Spare.Add(b);
+        }
+
+        private static void Buffers(Body body, int n)
+        {
+            for (int i = 0; i < Spare.Count; i++)
+            {
+                var s = Spare[i];
+                if (s.Pos.Length != Cap * n) continue;
+                Spare.RemoveAt(i);
+                body.Pos = s.Pos; body.Rot = s.Rot; body.Present = s.Present; body.Aim = s.Aim;
+                body.CamPos = s.CamPos; body.CamRot = s.CamRot; body.CamFov = s.CamFov;
+                body.GunPos = s.GunPos; body.GunScale = s.GunScale; body.GunRot = s.GunRot;
+                body.GunMesh = s.GunMesh; body.GunMats = s.GunMats; body.GunNative = s.GunNative;
+                Array.Clear(body.Present, 0, Cap);
+                Array.Clear(body.GunMesh, 0, Cap);
+                Array.Clear(body.GunMats, 0, Cap);
+                Array.Clear(body.GunNative, 0, Cap);
+                return;
+            }
+            body.Pos = new Vector3[Cap * n]; body.Rot = new Quaternion[Cap * n]; body.Present = new bool[Cap]; body.Aim = new Vector3[Cap];
+            body.CamPos = new Vector3[Cap]; body.CamRot = new Quaternion[Cap]; body.CamFov = new float[Cap];
+            body.GunPos = new Vector3[Cap]; body.GunScale = new Vector3[Cap]; body.GunRot = new Quaternion[Cap];
+            body.GunMesh = new Mesh[Cap]; body.GunMats = new Material[Cap][]; body.GunNative = new GameObject[Cap];
         }
 
         private static bool Under(Transform t, HashSet<Transform> roots)
@@ -233,18 +276,18 @@ namespace StraftatRockets
                 Key = ph.GetInstanceID(), Health = ph, Pickup = ph.GetComponent<PlayerPickup>(), Graphics = graphics,
                 RendererCount = rendererCount, Bones = bones.ToArray(), Scale = new Vector3[n], Skins = skins.ToArray(),
                 SkinBones = skinBones, SkinRoot = skinRoot, Props = props.ToArray(), PropStart = propStart,
-                Pos = new Vector3[Cap * n], Rot = new Quaternion[Cap * n], Present = new bool[Cap], Aim = new Vector3[Cap],
-                CamPos = new Vector3[Cap], CamRot = new Quaternion[Cap], CamFov = new float[Cap],
-                GunPos = new Vector3[Cap], GunScale = new Vector3[Cap], GunRot = new Quaternion[Cap], GunMesh = new Mesh[Cap],
-                GunMats = new Material[Cap][], GunNative = new GameObject[Cap],
+                BuiltAt = Time.unscaledTime,
             };
+            Buffers(body, n);
             body.Hips = 0;
             for (int b = 0; b < propStart; b++)
                 if (bones[b].name.ToLowerInvariant().Contains("hips")) { body.Hips = b; break; }
             for (int b = 0; b < n; b++) body.Scale[b] = bones[b].lossyScale;
-            // an animator that skips off-screen bodies would record a frozen pose for anyone you are not looking at
-            foreach (var a in graphics.GetComponentsInChildren<Animator>(true))
-                if (a.cullingMode != AnimatorCullingMode.AlwaysAnimate) a.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            // your own body's meshes are switched off, so an animator that skips unseen bodies would record you frozen;
+            // other players keep STRAFTAT's setting (the replay is seen through the killer's eyes, their body hidden)
+            if (ph.IsOwner)
+                foreach (var a in graphics.GetComponentsInChildren<Animator>(true))
+                    if (a.cullingMode != AnimatorCullingMode.AlwaysAnimate) a.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             Plugin.Log.LogInfo($"replay: recording {ph.gameObject.name}{(ph.IsOwner ? " (you)" : "")}: {skins.Count} skinned meshes, {propStart} bones " +
                                $"(camera on '{bones[body.Hips].name}'), {props.Count} props");
             return body;

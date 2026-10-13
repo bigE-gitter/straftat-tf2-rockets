@@ -149,7 +149,7 @@
     },
     {
       "id": "cosmetics",
-      "description": "F8 panel 'Look' (local only): your launcher model (11 TF2 rocket launchers, sheets/models.json), your rockets' model (TF2 rocket, Air Strike rocket, Cow Mangler energy ball, STRAFTAT rocket), the TF2 sounds you fire and explode with ('same as launcher' or any launcher's, a random pick per shot like TF2), colour (RGB + presets), opacity (texture alpha ignored when see-through) and an unusual effect (Unity look-alikes of TF2's Hot, Isotope, Cool, Energy Orb). Other players' launchers show The Original with its sounds and their rockets TF2's rocket on your screen",
+      "description": "F8 panel 'Look' (local only): your launcher model (11 TF2 rocket launchers, sheets/models.json), your rockets' model (TF2 rocket, Air Strike rocket, Cow Mangler energy ball, STRAFTAT rocket), the TF2 sounds you fire and explode with ('same as launcher' or any launcher's, a random pick per shot like TF2), colour (RGB + presets), opacity (texture alpha ignored when see-through) and an unusual effect (Unity look-alikes of TF2's Hot, Isotope, Cool, Energy Orb). Everything but opacity, placement and spin is shared (rules.shared_looks)",
       "hooks": [
         "viewmodel_apply",
         "viewmodel_panel",
@@ -176,6 +176,17 @@
       ],
       "verified_offline": "Gun.cs hip spread (ScopeAimWeapon && !isAiming -> notAimingAccuracy) and BeamGun/ChargeGun headshot (Head_Col) read",
       "verified_in_game": "0.3.x played; 0.5.1 headshot rule, body-shot setting and hip spread not yet played"
+    },
+    {
+      "id": "shared_looks",
+      "description": "Every player's F8 picks (launcher, rocket, sounds, sniper, melee, colour, unusual + strength) and the weapon they have out travel as their own Steam lobby member data ('tf2r_look' sent only when it changes, 'tf2r_slot' at once and at most 10 times a second), heard through Steam's LobbyDataUpdate callback plus a once-a-second check; other players' weapons then show their pick for the active slot (STRAFTAT guns from their prefab), their colour and unusual, their rockets fly as their rocket pick and their shots and blasts use their sounds. Opacity, placement, spin and melee swings stay local (user 2026-10-12: could not tell when the other player had the sniper or melee out). Received data is checked: ids are short [a-z0-9_] names, numbers clamped, unknown models fall back",
+      "hooks": [
+        "viewmodel_apply",
+        "projectile_visuals",
+        "loadout_input"
+      ],
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0); SteamLobby already uses Callback<LobbyDataUpdate_t>",
+      "verified_in_game": false
     }
   ]
 }

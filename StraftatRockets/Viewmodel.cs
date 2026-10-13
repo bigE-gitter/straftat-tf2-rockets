@@ -188,25 +188,33 @@ namespace StraftatRockets
             }
             var me = LocalPlayer.Controller;
             bool mine = me != null && item.rootObject == me.gameObject;
+            // rules.shared_looks: another player's weapon shows their shared picks and the weapon they have out (The
+            // Original until their picks arrive)
+            var look = mine ? null : Shared.For(item.rootObject);
+            int slot = mine ? Arsenal.Slot : look != null && Arsenal.HasSlot(look.Slot) ? look.Slot : 1;
+            string modelId = mine ? Arsenal.ModelForSlot() : look != null ? look.ModelFor(slot) : Visuals.DefaultLauncher;
+            var model = Visuals.Get(modelId);
             if (m.Pivot != null)
                 m.Pivot.localPosition = mine ? m.PivotBase + new Vector3(Right.Value, Up.Value, Forward.Value) : m.PivotBase;
             // turned about the grip (the model's origin) in the weapon's own axes: x right, y up, z forward
-            var pose = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * SlotPose() : Quaternion.identity;
+            var pose = mine ? Quaternion.Euler(Pitch.Value, Yaw.Value, Roll.Value) * SlotPose() : RemotePose(slot, model);
             m.transform.localRotation = pose * m.ModelBaseRotation;
             m.transform.localScale = Vector3.one * (mine ? Scale.Value : 1f);
             bool hidden = mine && Hide.Value;
-            // rules.loadout: a STRAFTAT gun picked as the sniper is shown from the game's own weapon prefab
-            var model = mine ? Visuals.Get(Arsenal.ModelForSlot()) : null;
+            // rules.loadout: a STRAFTAT gun picked as the sniper or melee is shown from the game's own weapon prefab
             bool native = model != null && (model.Kind == "straftat_sniper" || model.Kind == "straftat_melee");
-            if (native) Visuals.ShowNative(m, model.Prefab, pose, Scale.Value, !hidden);
+            if (native) Visuals.ShowNative(m, model.Prefab, pose, mine ? Scale.Value : 1f, !hidden);
             else Visuals.HideNative(m);
             if (m.Renderer != null) m.Renderer.enabled = !hidden && !native;
-            // rules.cosmetics + rules.loadout: your launcher shows the active slot's weapon in your colour and opacity;
-            // everyone else's is The Original
-            if (mine && !native) Visuals.SetLook(m, Arsenal.ModelForSlot(), Tint, Opacity.Value);
-            else if (!mine) Visuals.SetLook(m, Visuals.DefaultLauncher, Color.white, 1f);
-            Unusuals.Apply(m, mine ? Unusual.Value : "none", UnusualStrength.Value, !hidden && !native);
+            // rules.cosmetics: the active slot's weapon in its owner's colour; opacity is only ever your own
+            if (!native) Visuals.SetLook(m, modelId, mine ? Tint : look != null ? look.Tint : Color.white, mine ? Opacity.Value : 1f);
+            Unusuals.Apply(m, mine ? Unusual.Value : look != null ? look.Unusual : "none",
+                           mine ? UnusualStrength.Value : look != null ? look.Strength : 1f, !hidden && !native);
         }
+
+        /// Another player's weapon: their placement, swing and spin are not shared; a TF2 melee leans forward like yours.
+        private static Quaternion RemotePose(int slot, TF2Model model) =>
+            slot == 3 && (model == null || model.Kind != "straftat_melee") ? Quaternion.Euler(35f, 0f, 0f) : Quaternion.identity;
     }
 
     /// The F8 panel. It lives on its own hidden, scene-independent object so nothing STRAFTAT does to scenes removes it.

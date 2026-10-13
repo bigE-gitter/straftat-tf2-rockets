@@ -72,10 +72,13 @@ namespace StraftatRockets
             bool mine0 = me0 != null && rootObject == me0.gameObject;
             bool jumpSnipe = Arsenal.Mode == GameMode.JumpSnipe;
             // other players' shots: STRAFTAT played their launcher's (silent) shot sound; play the right one here
+            // rules.shared_looks: other players' shots sound and look like their own picks
+            var look0 = mine0 ? null : Shared.For(rootObject);
             if (!mine0)
             {
-                var their = slot == 2 ? Visuals.SoundFor("sniper_rifle", null) : null;
-                var shot = Visuals.Pick(their?.Fire, Visuals.FireClip);
+                var shot = slot == 2
+                    ? Arsenal.SniperClip(look0 != null ? look0.Sniper : "sniper_rifle", Visuals.FireClip)
+                    : Visuals.Pick(Visuals.SoundFor(look0?.Sounds, look0 != null ? look0.Launcher : Visuals.DefaultLauncher)?.Fire, Visuals.FireClip);
                 var gunAudio = gun.GetComponent<Weapon>()?.audio;
                 if (shot != null && gunAudio != null) gunAudio.PlayOneShot(shot);
                 Replay.OnFired(__instance.transform.position, shot, rootObject, slot, serial);
@@ -97,7 +100,8 @@ namespace StraftatRockets
                 };
                 return;
             }
-            var mySet = mine0 ? Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value) : null;
+            var mySet = mine0 ? Visuals.SoundFor(Viewmodel.Sound.Value, Viewmodel.Model.Value)
+                      : look0 != null ? Visuals.SoundFor(look0.Sounds, look0.Launcher) : null;
             var blast = Visuals.Pick(mySet?.Explode, Visuals.ExplodeClip);
             if (src != null && blast != null)
             {
@@ -113,7 +117,8 @@ namespace StraftatRockets
             var me = LocalPlayer.Controller;
             bool mine = me != null && rootObject == me.gameObject;
             var graph = Graph(__instance);
-            Visuals.DressProjectile(__instance, graph != null ? graph.transform : null, mine ? Viewmodel.Projectile.Value : Visuals.DefaultProjectile);
+            Visuals.DressProjectile(__instance, graph != null ? graph.transform : null,
+                                    mine ? Viewmodel.Projectile.Value : look0 != null ? look0.Rocket : Visuals.DefaultProjectile);
         }
 
         private static readonly Dictionary<GameObject, GameObject> SilentCopies = new Dictionary<GameObject, GameObject>();

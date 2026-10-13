@@ -52,8 +52,8 @@ Everyone in the lobby needs **the same version** of the mod. STRAFTAT only match
 modded players get their own lobbies and never join vanilla ones. The host gives everyone a launcher each round;
 damage and knockback are worked out the way STRAFTAT handles its own weapons online.
 
-The F8 look options (model, rocket, sounds, colour, effects, viewmodel) only change **your own** screen. Other players
-see The Original and TF2's rocket.
+Everyone sees everyone's F8 picks: the weapon each player has out (launcher, sniper or melee model), their colour and
+unusual effect, their rockets and their sounds. Opacity, weapon placement and spin only change **your own** screen.
 
 ### Uninstall
 

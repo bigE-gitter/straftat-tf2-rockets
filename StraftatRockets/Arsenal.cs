@@ -189,6 +189,7 @@ namespace StraftatRockets
         {
             if (!__instance.IsOwner) return;
             RefreshMode();
+            Shared.Tick();
             if (!Holding(out _, out var weapon)) return;
             var item = weapon.GetComponent<ItemBehaviour>();
             ApplyAim(item, LocalPlayer.Controller);
@@ -239,10 +240,7 @@ namespace StraftatRockets
                 case 2:
                     launcher.timeBetweenFire = Tf2.SniperFireInterval;
                     PendingSlot = 2;
-                    // a TF2 rifle's own shot sound, or the STRAFTAT gun's
-                    var native = Visuals.Get(ModelForSlot());
-                    var gunClip = native != null && native.Kind == "straftat_sniper" ? Visuals.StraftatPrefab(native.Prefab)?.GetComponent<Weapon>()?.fireClip : null;
-                    launcher.fireClip = gunClip != null ? gunClip : Visuals.Pick(set?.Fire, launcher.fireClip);
+                    launcher.fireClip = SniperClip(ModelForSlot(), launcher.fireClip);
                     return true;
                 case 3:
                     if (Time.time >= _nextSwing) StartSwing(launcher);
@@ -253,6 +251,16 @@ namespace StraftatRockets
                     launcher.fireClip = Visuals.Pick(set?.Fire, Visuals.FireClip);
                     return true;
             }
+        }
+
+        /// A sniper pick's shot sound: a STRAFTAT gun's own, else that TF2 rifle's (or the stock Sniper Rifle's).
+        internal static AudioClip SniperClip(string sniperId, AudioClip fallback)
+        {
+            var model = Visuals.Get(sniperId);
+            var gunClip = model != null && model.Kind == "straftat_sniper" ? Visuals.StraftatPrefab(model.Prefab)?.GetComponent<Weapon>()?.fireClip : null;
+            if (gunClip != null) return gunClip;
+            var set = Visuals.SoundFor(sniperId, null) ?? Visuals.SoundFor("sniper_rifle", null);
+            return Visuals.Pick(set?.Fire, fallback);
         }
 
         private static void StartSwing(DualLauncher launcher)
