@@ -278,7 +278,17 @@ namespace StraftatRockets
         {
             KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.Space, KeyCode.LeftShift, KeyCode.LeftControl, KeyCode.E,
             KeyCode.Q, KeyCode.R, KeyCode.F, KeyCode.C, KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3,
+            KeyCode.Mouse2,
         };
+
+        /// Unity counts mouse buttons from 0; people call the side buttons mouse 4 and 5.
+        private static string KeyName(KeyCode k)
+        {
+            if (k == KeyCode.None) return "not bound";
+            if (k == KeyCode.Mouse2) return "Middle mouse";
+            if (k >= KeyCode.Mouse3 && k <= KeyCode.Mouse6) return "Mouse " + ((int)k - (int)KeyCode.Mouse0 + 1) + (k <= KeyCode.Mouse4 ? " (side)" : "");
+            return k.ToString();
+        }
 
         private static ConfigEntry<KeyCode>[] Binds => new[] { Viewmodel.SpinKey, Flips.FrontKey, Flips.BackKey };
 
@@ -302,12 +312,12 @@ namespace StraftatRockets
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, GUILayout.Width(80));
-            string text = _rebinding == entry ? "press a key (Esc cancels)" : entry.Value == KeyCode.None ? "not bound" : entry.Value.ToString();
+            string text = _rebinding == entry ? "press a key or mouse button" : KeyName(entry.Value);
             if (GUILayout.Button(text, GUILayout.Width(180))) _rebinding = entry;
             if (GUILayout.Button("Clear", GUILayout.Width(50))) { entry.Value = KeyCode.None; _rebinding = null; }
             GUILayout.EndHorizontal();
             if (_rebinding != entry && System.Array.IndexOf(Taken, entry.Value) >= 0)
-                GUILayout.Label("   (the game also uses " + entry.Value + ")");
+                GUILayout.Label("   (the game also uses " + KeyName(entry.Value) + ")");
         }
 
         private static void Slider(string label, ConfigEntry<float> e, float min, float max, string fmt)
