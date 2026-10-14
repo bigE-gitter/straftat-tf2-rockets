@@ -125,6 +125,7 @@ namespace StraftatRockets
         // Recording runs after animation (LateUpdate), so bones are this frame's pose.
         private void LateUpdate()
         {
+            Flips.ApplyBodies(); // after animation, before recording, so flips are in the replay too
             if (FinalKillCam.Enabled == null || !FinalKillCam.Enabled.Value || FinalKillCam.Running) return;
             var pm = PauseManager.Instance;
             if (pm == null || pm.inMainMenu || pm.inVictoryMenu)

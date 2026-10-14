@@ -10,7 +10,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
     <Deterministic>true</Deterministic>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <StraftatDir Condition="'$(StraftatDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\STRAFTAT</StraftatDir>
     <Managed>$(StraftatDir)\STRAFTAT_Data\Managed</Managed>
     <BepCore>$(StraftatDir)\BepInEx\core</BepCore>

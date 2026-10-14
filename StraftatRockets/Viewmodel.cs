@@ -239,6 +239,7 @@ namespace StraftatRockets
             if (Input.GetKeyDown(Viewmodel.PanelKey.Value)) SetOpen(!Open);
             useGUILayout = Open; // closed, only the slot HUD draws (plain GUI), so Unity skips the layout pass
             Viewmodel.TickSpin();
+            Flips.Tick();
         }
 
 
@@ -246,6 +247,7 @@ namespace StraftatRockets
         {
             if (open == Open) return;
             Open = open;
+            _rebinding = null;
             if (open)
             {
                 _lockBefore = Cursor.lockState;
@@ -264,8 +266,48 @@ namespace StraftatRockets
         {
             Arsenal.DrawHud();
             if (!Open) return;
+            if (_rebinding != null) CatchKey(Event.current);
             if (Cursor.lockState != CursorLockMode.None) { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
             _rect = GUILayout.Window(0x5754F2, _rect, Draw, "The Original - viewmodel (" + Viewmodel.PanelKey.Value + " to close)");
+        }
+
+        // ------------------------------------------------------------------ key binds (spin, flips)
+        private static ConfigEntry<KeyCode> _rebinding;
+        // keys STRAFTAT or this mod already use: binding one is allowed, with a note
+        private static readonly KeyCode[] Taken =
+        {
+            KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.Space, KeyCode.LeftShift, KeyCode.LeftControl, KeyCode.E,
+            KeyCode.Q, KeyCode.R, KeyCode.F, KeyCode.C, KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3,
+        };
+
+        private static ConfigEntry<KeyCode>[] Binds => new[] { Viewmodel.SpinKey, Flips.FrontKey, Flips.BackKey };
+
+        /// While a bind waits for its key: the next key (or a middle/side mouse button) is taken; Esc cancels.
+        private static void CatchKey(Event e)
+        {
+            var k = KeyCode.None;
+            if (e.type == EventType.KeyDown && e.keyCode != KeyCode.None) k = e.keyCode;
+            else if (e.type == EventType.MouseDown && e.button >= 2 && e.button <= 6) k = (KeyCode)((int)KeyCode.Mouse0 + e.button);
+            if (k == KeyCode.None) return;
+            if (k != KeyCode.Escape && k != Viewmodel.PanelKey.Value)
+            {
+                foreach (var other in Binds) if (other != _rebinding && other.Value == k) other.Value = KeyCode.None; // one action per key
+                _rebinding.Value = k;
+            }
+            _rebinding = null;
+            e.Use();
+        }
+
+        private static void KeyBind(string label, ConfigEntry<KeyCode> entry)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(80));
+            string text = _rebinding == entry ? "press a key (Esc cancels)" : entry.Value == KeyCode.None ? "not bound" : entry.Value.ToString();
+            if (GUILayout.Button(text, GUILayout.Width(180))) _rebinding = entry;
+            if (GUILayout.Button("Clear", GUILayout.Width(50))) { entry.Value = KeyCode.None; _rebinding = null; }
+            GUILayout.EndHorizontal();
+            if (_rebinding != entry && System.Array.IndexOf(Taken, entry.Value) >= 0)
+                GUILayout.Label("   (the game also uses " + entry.Value + ")");
         }
 
         private static void Slider(string label, ConfigEntry<float> e, float min, float max, string fmt)
@@ -348,6 +390,10 @@ namespace StraftatRockets
             if (cam != FinalKillCam.Enabled.Value) FinalKillCam.Enabled.Value = cam;
             if (GUILayout.Button("Preview", GUILayout.Width(70))) { SetOpen(false); FinalKillCam.Preview(); }
             GUILayout.EndHorizontal();
+            GUILayout.Label("Keys");
+            KeyBind("Spin weapon", Viewmodel.SpinKey);
+            KeyBind("Front flip", Flips.FrontKey);
+            KeyBind("Backflip", Flips.BackKey);
             GUILayout.Label("Look");
             Picker("Launcher", Viewmodel.Model, Visuals.Launchers);
             Picker("Rocket", Viewmodel.Projectile, Visuals.Projectiles);

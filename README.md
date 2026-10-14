@@ -25,7 +25,8 @@ rocket-jumping arena:
 - Your launcher shows **The Original**, with its sounds. Press **F8** in game to pick any TF2 rocket launcher model,
   the rocket model your shots fly as, the sounds, your sniper (six TF2 rifles or five STRAFTAT guns), the scope's
   opacity, your Market Gardener's look (any TF2 or STRAFTAT melee weapon), a colour, opacity, an unusual-style
-  effect, and to move/turn/scale each weapon in your view. Press **V** to flip your weapon (each press restarts it).
+  effect, and to move/turn/scale each weapon in your view. Press **V** to flip your weapon (each press restarts it), **Z** for a front flip and **X** for a backflip (everyone sees
+  your character flip). All three keys can be rebound in F8.
 
 No files from STRAFTAT or Team Fortress 2 are in this repository or its releases. The TF2 models, textures and sounds
 are read from **your own TF2 install** each time the game starts.

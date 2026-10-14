@@ -197,7 +197,7 @@
       "kind": "prefix+postfix",
       "runs_on": "every client",
       "does": "When a death's ragdoll spawns and it leaves one team alive whose take score + 1 reaches ScoreManager.RoundScoreRequiredToWin, start the final kill cam (FinalKillCam.cs)",
-      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.7.0)",
       "verified_in_game": false
     },
     {
@@ -206,7 +206,7 @@
       "kind": "prefix",
       "runs_on": "every client",
       "does": "If the end-of-round screen arrives while the final kill cam is still playing, it is shown when the cam ends",
-      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.7.0)",
       "verified_in_game": false
     },
     {
@@ -215,7 +215,7 @@
       "kind": "postfix",
       "runs_on": "every client",
       "does": "Each shot gets a serial; the shot sound heard and each rocket burst (position, effect, sound, shooter) are handed to Replay for the final kill cam",
-      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.7.0)",
       "verified_in_game": false
     },
     {
@@ -224,7 +224,16 @@
       "kind": "prefix",
       "runs_on": "shooter / every client",
       "does": "Your shot's id carries the weapon slot in its low 2 bits and every client reads it back before the projectile initializes; a sniper shot from the hip also gets the M2000's spread on its direction here",
-      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0)",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.7.0)",
+      "verified_in_game": false
+    },
+    {
+      "id": "flip_view",
+      "target": "FirstPersonController.HandleMouseLook",
+      "kind": "postfix",
+      "runs_on": "your own client",
+      "does": "During a flip, the camera holder's rotation is turned further about its right axis by the flip angle",
+      "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.7.0)",
       "verified_in_game": false
     }
   ]

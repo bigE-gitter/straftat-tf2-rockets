@@ -30,10 +30,13 @@ namespace StraftatRockets
 
     internal static class Shared
     {
-        private const string LookKey = "tf2r_look", SlotKey = "tf2r_slot";
+        private const string LookKey = "tf2r_look", SlotKey = "tf2r_slot", FlipKey = "tf2r_flip";
         private static readonly Dictionary<ulong, Look> Looks = new Dictionary<ulong, Look>();
         private static readonly Dictionary<ulong, string> RawLook = new Dictionary<ulong, string>();
         private static readonly Dictionary<ulong, string> RawSlot = new Dictionary<ulong, string>();
+        private static readonly Dictionary<ulong, string> RawFlip = new Dictionary<ulong, string>();
+        private static int _sentFlip;
+        private static float _nextFlipSend;
         private static readonly Dictionary<int, ulong> SteamOf = new Dictionary<int, ulong>(); // player GameObject -> Steam id
         private static Callback<LobbyDataUpdate_t> _onData; // kept referenced, or Steam's callback is collected
         private static ulong _lobby, _me;
@@ -54,9 +57,11 @@ namespace StraftatRockets
                 _lookDirty = true;
                 _sentLook = null;
                 _sentSlot = -1;
+                _sentFlip = Flips.Count; // flips from before this lobby are not news
                 Looks.Clear();
                 RawLook.Clear();
                 RawSlot.Clear();
+                RawFlip.Clear();
                 SteamOf.Clear();
                 if (lobby != 0UL) Start();
             }
@@ -76,6 +81,13 @@ namespace StraftatRockets
                     _sentSlot = Arsenal.Slot;
                     _nextSlotSend = Time.unscaledTime + 0.1f;
                     SteamMatchmaking.SetLobbyMemberData(id, SlotKey, SlotText(_sentSlot));
+                }
+                // rules.flips: each flip as "count,f|b"; others play one whenever the count moves
+                if (Flips.Count != _sentFlip && Time.unscaledTime >= _nextFlipSend)
+                {
+                    _sentFlip = Flips.Count;
+                    _nextFlipSend = Time.unscaledTime + 0.1f;
+                    SteamMatchmaking.SetLobbyMemberData(id, FlipKey, _sentFlip.ToString(CultureInfo.InvariantCulture) + (Flips.LastDir > 0 ? ",f" : ",b"));
                 }
                 if (Time.unscaledTime >= _nextPoll)
                 {
@@ -120,6 +132,14 @@ namespace StraftatRockets
             if (member == 0UL || member == _me || _lobby == 0UL) return;
             var lobby = new CSteamID(_lobby);
             var user = new CSteamID(member);
+            var rawFlip = SteamMatchmaking.GetLobbyMemberData(lobby, user, FlipKey);
+            if (!RawFlip.TryGetValue(member, out var oldFlip) || oldFlip != rawFlip)
+            {
+                bool seen = oldFlip != null; // the first value heard is where they are, not a new flip
+                RawFlip[member] = rawFlip;
+                if (seen && rawFlip != null && rawFlip.Length <= 16 && (rawFlip.EndsWith(",f") || rawFlip.EndsWith(",b")))
+                    Flips.StartOther(member, rawFlip.EndsWith(",f") ? 1 : -1);
+            }
             var rawLook = SteamMatchmaking.GetLobbyMemberData(lobby, user, LookKey);
             var rawSlot = SteamMatchmaking.GetLobbyMemberData(lobby, user, SlotKey);
             bool lookChanged = !RawLook.TryGetValue(member, out var oldLook) || oldLook != rawLook;

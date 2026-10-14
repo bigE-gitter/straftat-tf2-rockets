@@ -187,6 +187,15 @@
       ],
       "verified_offline": "plugin compiles against STRAFTAT's DLLs (StraftatRockets.dll 0.6.0); SteamLobby already uses Callback<LobbyDataUpdate_t>",
       "verified_in_game": false
+    },
+    {
+      "id": "flips",
+      "description": "A front flip or a backflip on a key (defaults Z / X, both free in STRAFTAT; rebindable in F8 with the weapon spin key, Esc cancels, middle/side mouse buttons allowed, one action per key). Over 0.6 s your view pitches a whole turn (STRAFTAT's HandleMouseLook sets the camera holder's pitch each frame; the flip turns it further, so the gun on the camera turns too and shots go where you look); a press mid-flip goes on for at least one more turn and ends upright. Each flip is shared as Steam lobby member data 'tf2r_flip' (count + direction, at most 10 a second) and every other game turns that player's Hips bone about itself (after animation, undone if the animator skipped the frame), so the body tumbles on enemies' screens; the replay records it. Movement is untouched (user 2026-10-13: front flip / backflip with custom binds, visible on the enemy's screen)",
+      "hooks": [
+        "flip_view"
+      ],
+      "verified_offline": "FirstPersonController.HandleMouseLook read (playerCameraHolder.localRotation = Euler(rotationX, 0, rotationZ)); Z and X unused by STRAFTAT's bindings",
+      "verified_in_game": false
     }
   ]
 }

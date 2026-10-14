@@ -15,7 +15,7 @@ namespace StraftatRockets
     {
         public const string Guid = "melty.straftat.tf2rockets";
         public const string Name = "STRAFTAT x TF2 Rockets";
-        public const string Version = "0.6.0";
+        public const string Version = "0.7.0";
         public const string LauncherName = "RocketLauncher";
 
         internal static ManualLogSource Log;
@@ -30,6 +30,7 @@ namespace StraftatRockets
             Arsenal.Bind(Config);
             FinalKillCam.Bind(Config);
             Shared.Bind(Config);
+            Flips.Bind(Config);
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             Tf2Folder = Config.Bind("Paths", "TF2Folder", "", "Team Fortress 2's 'tf' folder. Leave empty to find TF2 through Steam.");
             try { Visuals.Load(System.IO.Path.GetDirectoryName(Info.Location), Tf2Folder.Value); }
